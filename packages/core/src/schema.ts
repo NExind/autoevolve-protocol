@@ -23,6 +23,30 @@ export const critiqueSchema = z
   })
   .strict();
 
+export const failureCodeSchema = z.enum([
+  "MISSING_CONSENT_GATE",
+  "PII_EXPOSURE",
+  "NON_RESEARCH_PURPOSE",
+  "MISSING_AUDIT_LOG",
+  "MISSING_REGION_BLOCK",
+  "MISSING_DUAL_APPROVAL",
+  "K_ANONYMITY_TOO_LOW",
+  "EXPORT_LIMIT_TOO_HIGH",
+  "RETENTION_TOO_LONG",
+  "RATE_LIMIT_TOO_HIGH",
+]);
+
+export const inheritedLessonSchema = z
+  .object({
+    failureCode: failureCodeSchema,
+    safePatchStrategy: z.string().min(1).max(500),
+    sourceRunId: z.string().max(100).optional(),
+    sourceCid: z.string().max(100).optional(),
+  })
+  .strict();
+
+export const inheritedLessonsSchema = z.array(inheritedLessonSchema).max(10);
+
 export const dataPolicyJsonSchema = {
   type: "object",
   additionalProperties: false,
