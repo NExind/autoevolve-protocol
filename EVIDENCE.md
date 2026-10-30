@@ -35,7 +35,7 @@ proving key, witness, raw private prompt, or unredacted user data.
 
 ### Base Sepolia
 
-_No Base Sepolia deployment or settlement observed yet._
+- 2026-10-31: Local verification of deployment contracts (`GeneratedGroth16Verifier.sol`, `Groth16VerifierAdapter.sol`, `AutoEvolveRegistry.sol`) observed passing in EVM Ganache environment. Test suite verified pairing precompiles, signal binding checks, and reward escrow accounting. Live Base Sepolia broadcast and settlement transactions remain pending human-provided testnet credentials (`DEPLOYER_PRIVATE_KEY`, `AGENT_PRIVATE_KEY`, `BASE_SEPOLIA_RPC_URL` in `.env.local`). No transaction hashes or explorer URLs fabricated.
 
 ### Agent Beta
 
