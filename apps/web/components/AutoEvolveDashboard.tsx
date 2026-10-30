@@ -282,7 +282,7 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
               onClick={() => execute("showcase")}
               type="button"
             >
-              {busy === "showcase" ? "Replaying…" : "Run verified replay"}
+              {busy === "showcase" ? "Replaying…" : "Run showcase replay"}
             </button>
             <button
               className="button buttonSecondary"

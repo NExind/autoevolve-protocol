@@ -30,13 +30,17 @@ coordination mechanism.
 
 ## Ownership boundaries
 
-| Agent ID        | Owns                                                                        | Does not edit                                   |
-| --------------- | --------------------------------------------------------------------------- | ----------------------------------------------- |
-| agent-core      | packages/core/\*\*, apps/web/app/api/runs/route.ts                          | proof, chain, memory, dashboard files           |
-| agent-zk        | circuits/**, packages/contracts/**                                          | web API routes, SDKs, memory                    |
-| agent-memory    | packages/memory/**, packages/chain/**, attestation and memory search routes | circuit/contract source, dashboard presentation |
-| agent-dashboard | apps/web/components/\*\* plus page, layout, CSS, next config                | API routes and package internals                |
+| Agent ID        | Owns                                                                                                 | Does not edit                                   |
+| --------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| agent-core      | packages/core/\*\*, apps/web/app/api/runs/route.ts                                                   | proof, chain, memory, dashboard files           |
+| agent-zk        | circuits/**, packages/contracts/**, proof/deployment rows in EVIDENCE.md                             | web API routes, SDKs, memory                    |
+| agent-memory    | packages/memory/**, packages/chain/**, attestation and memory search routes, CID rows in EVIDENCE.md | circuit/contract source, dashboard presentation |
+| agent-dashboard | apps/web/components/\*\* plus page, layout, CSS, next config, DEMO.md                                | API routes and package internals                |
 
 Shared root documents, root configuration, and API contracts require the RFC
 procedure. The agent that opens the RFC owns its implementation after peer
 acknowledgements.
+
+EVIDENCE.md is the exception: it is append-only for observed, non-secret
+artifacts. An owning agent may fill only its designated evidence rows without
+an RFC; it must never replace a missing artifact with a placeholder claim.

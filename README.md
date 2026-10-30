@@ -74,7 +74,8 @@ Until those observed artifacts exist, call the state `prepared` or `pinned`, not
 | `circuits`           | Circom score-improvement circuit and proving fixtures   |
 
 Read [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md), [ARCHITECTURE.md](ARCHITECTURE.md),
-and [API_CONTRACT.md](API_CONTRACT.md) before changing shared interfaces.
+[API_CONTRACT.md](API_CONTRACT.md), [EVIDENCE.md](EVIDENCE.md), and
+[DEMO.md](DEMO.md) before changing shared interfaces or presenting results.
 
 ## Truthful demo claims
 
