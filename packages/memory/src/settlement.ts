@@ -15,7 +15,10 @@ export async function loadSettlementArtifact(
   filePath: string,
 ): Promise<SettlementArtifact | null> {
   try {
-    const raw = await readFile(resolve(filePath), "utf8");
+    const raw = await readFile(
+      resolve(/*turbopackIgnore: true*/ filePath),
+      "utf8",
+    );
     const json = JSON.parse(raw);
     return parseSettlementArtifact(json);
   } catch {
@@ -35,7 +38,7 @@ export async function loadSettlementReceipts(
     process.env.SETTLEMENT_RECEIPTS_PATH ??
     "circuits/proofs/on-chain-settlement/settlement-receipts.json";
   try {
-    const raw = await readFile(resolve(path), "utf8");
+    const raw = await readFile(resolve(/*turbopackIgnore: true*/ path), "utf8");
     const json = JSON.parse(raw);
     return parseSettlementReceipts(json);
   } catch {
@@ -56,9 +59,7 @@ export async function loadLocalSettlementProofs(options?: {
   v2v3: SettlementArtifact;
 } | null> {
   const baseDir =
-    options?.proofDir ??
-    process.env.PROOF_ARTIFACTS_DIR ??
-    "circuits/proofs";
+    options?.proofDir ?? process.env.PROOF_ARTIFACTS_DIR ?? "circuits/proofs";
 
   const v1v2Path = resolve(baseDir, "v1-v2", "settlement.json");
   const v2v3Path = resolve(baseDir, "v2-v3", "settlement.json");

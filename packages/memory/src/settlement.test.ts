@@ -21,7 +21,9 @@ async function validCid(value: string): Promise<string> {
   return CID.createV1(rawCodecCode, digest).toString();
 }
 
-function createValidSettlementArtifact(overrides?: Partial<SettlementArtifact>): SettlementArtifact {
+function createValidSettlementArtifact(
+  overrides?: Partial<SettlementArtifact>,
+): SettlementArtifact {
   return {
     schemaVersion: "autoevolve-settlement/v1",
     locallyVerified: true,
@@ -38,15 +40,15 @@ function createValidSettlementArtifact(overrides?: Partial<SettlementArtifact>):
     publicSignals: [
       "40", // previousScore
       "70", // nextScore
-      "1",  // binding
+      "1", // binding
       "10", // previousPolicyCommitment
       "20", // nextPolicyCommitment
       "100", // runIdLow
       "200", // runIdHigh
       "300", // cidHashLow
       "400", // cidHashHigh
-      "1",   // agent
-      "2",   // stage
+      "1", // agent
+      "2", // stage
       "500", // rubricHashLow
       "600", // rubricHashHigh
     ],
@@ -184,17 +186,23 @@ describe("Groth16 Settlement Artifact & Receipts Validation", () => {
     const validReceipts: SettlementReceiptsArtifact = {
       network: "base-sepolia",
       registry: "0x1111111111111111111111111111111111111111",
-      runId: "0x1111111111111111111111111111111111111111111111111111111111111111",
-      taskHash: "0x2222222222222222222222222222222222222222222222222222222222222222",
-      rubricHash: "0x3333333333333333333333333333333333333333333333333333333333333333",
+      runId:
+        "0x1111111111111111111111111111111111111111111111111111111111111111",
+      taskHash:
+        "0x2222222222222222222222222222222222222222222222222222222222222222",
+      rubricHash:
+        "0x3333333333333333333333333333333333333333333333333333333333333333",
       cid,
       agent: "0x4444444444444444444444444444444444444444",
       finalVersion: 3,
       finalScore: 100,
       receipts: {
-        startRun: "0x4444444444444444444444444444444444444444444444444444444444444444",
-        v1ToV2: "0x5555555555555555555555555555555555555555555555555555555555555555",
-        v2ToV3: "0x6666666666666666666666666666666666666666666666666666666666666666",
+        startRun:
+          "0x4444444444444444444444444444444444444444444444444444444444444444",
+        v1ToV2:
+          "0x5555555555555555555555555555555555555555555555555555555555555555",
+        v2ToV3:
+          "0x6666666666666666666666666666666666666666666666666666666666666666",
       },
     };
 
@@ -204,7 +212,10 @@ describe("Groth16 Settlement Artifact & Receipts Validation", () => {
 
     // Rejects non-Base Sepolia networks (never mainnet)
     expect(() =>
-      parseSettlementReceipts({ ...validReceipts, network: "mainnet" as never }),
+      parseSettlementReceipts({
+        ...validReceipts,
+        network: "mainnet" as never,
+      }),
     ).toThrow();
 
     // Rejects invalid registry address
@@ -214,10 +225,14 @@ describe("Groth16 Settlement Artifact & Receipts Validation", () => {
   });
 
   it("returns null when artifacts or receipts are not found on disk", async () => {
-    const missingArtifact = await loadSettlementArtifact("nonexistent/path/artifact.json");
+    const missingArtifact = await loadSettlementArtifact(
+      "nonexistent/path/artifact.json",
+    );
     expect(missingArtifact).toBeNull();
 
-    const missingReceipts = await loadSettlementReceipts("nonexistent/path/receipts.json");
+    const missingReceipts = await loadSettlementReceipts(
+      "nonexistent/path/receipts.json",
+    );
     expect(missingReceipts).toBeNull();
 
     const missingProofs = await loadLocalSettlementProofs({

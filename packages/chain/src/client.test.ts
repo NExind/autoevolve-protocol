@@ -113,10 +113,7 @@ describe("textOrBytes32ToHash and limb helpers", () => {
     const artifact = {
       proof: {
         a: ["101", "102"] as const,
-        b: [
-          ["201", "202"] as const,
-          ["203", "204"] as const,
-        ] as const,
+        b: [["201", "202"] as const, ["203", "204"] as const] as const,
         c: ["301", "302"] as const,
       },
       publicSignals: [
@@ -151,10 +148,7 @@ describe("textOrBytes32ToHash and limb helpers", () => {
     const artifact = {
       proof: {
         a: ["1", "2"] as const,
-        b: [
-          ["1", "2"] as const,
-          ["3", "4"] as const,
-        ] as const,
+        b: [["1", "2"] as const, ["3", "4"] as const] as const,
         c: ["1", "2"] as const,
       },
       publicSignals: ["40", "70"],

@@ -1,5 +1,6 @@
 import { readLatestVerifiedMemory } from "@autoevolve/chain";
 import {
+  allowlistedCardsToInheritedLessons,
   createGeminiEmbedder,
   rankMemoryCards,
   retrieveVerifiedMemory,
@@ -56,10 +57,12 @@ export async function GET(request: Request) {
       safeCards,
       embedder,
     );
+    const lessons = allowlistedCardsToInheritedLessons(cards);
     return Response.json({
       status: "verified-memory",
       pointer,
       cards,
+      lessons,
     });
   } catch (error) {
     return Response.json(

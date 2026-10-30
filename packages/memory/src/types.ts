@@ -105,4 +105,3 @@ export interface VerifiedMemoryPointer {
   cid: string;
   exists: boolean;
 }
-

@@ -90,7 +90,8 @@ export async function POST(request: Request) {
       return Response.json(
         {
           status: "error",
-          error: error instanceof Error ? error.message : "Pinata upload failed.",
+          error:
+            error instanceof Error ? error.message : "Pinata upload failed.",
         },
         { status: 502 },
       );
@@ -122,8 +123,7 @@ export async function POST(request: Request) {
       })),
       txHash,
       registryAddress: settlementReceipts.registry,
-      message:
-        "Run improvement proofs verified and settled on Base Sepolia.",
+      message: "Run improvement proofs verified and settled on Base Sepolia.",
     });
   }
 
@@ -171,4 +171,3 @@ export async function POST(request: Request) {
     safeCards,
   });
 }
-

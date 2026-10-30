@@ -234,4 +234,3 @@ export function settlementArtifactToSolidityProof(artifact: {
     publicSignals: artifact.publicSignals.map((item) => BigInt(item)),
   };
 }
-
