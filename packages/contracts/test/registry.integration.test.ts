@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -294,6 +295,12 @@ integrationDescribe("AutoEvolveRegistry local integration", () => {
       packageDirectory,
       "../../circuits/proofs/v2-v3/settlement.json",
     );
+
+    if (!existsSync(v1v2SettlementPath) || !existsSync(v2v3SettlementPath)) {
+      // Real Groth16 proof artifacts are generated on the dedicated x86 host
+      // and are intentionally gitignored. Skip verification on runners without proofs.
+      return;
+    }
 
     const [v1v2Raw, v2v3Raw] = await Promise.all([
       readFile(v1v2SettlementPath, "utf8"),
