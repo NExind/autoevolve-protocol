@@ -1151,3 +1151,828 @@ a {
     transform: rotate(90deg);
   }
 }
+
+/* ==========================================================================
+   AutoEvolve Extended Styles: Honest States, Timeline, Trust Boundary, & Memory
+   ========================================================================== */
+
+.replayBanner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+  border: 1px solid rgba(255, 203, 101, 0.4);
+  border-radius: 8px;
+  padding: 12px 18px;
+  background: rgba(255, 203, 101, 0.08);
+  color: var(--amber);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.replayBadge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(255, 203, 101, 0.2);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.networkBadge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dotConfigured {
+  background: var(--mint);
+  box-shadow:
+    0 0 0 3px rgba(112, 230, 176, 0.15),
+    0 0 10px var(--mint);
+}
+
+.dotUnconfigured {
+  background: var(--amber);
+  box-shadow: 0 0 0 3px rgba(255, 203, 101, 0.15);
+}
+
+.notice-error {
+  border: 1px solid rgba(255, 139, 148, 0.45);
+  border-radius: 6px;
+  padding: 10px 14px;
+  background: rgba(255, 139, 148, 0.09);
+  color: #ffb5bb;
+}
+
+.notice-warn {
+  border: 1px solid rgba(255, 203, 101, 0.4);
+  border-radius: 6px;
+  padding: 10px 14px;
+  background: rgba(255, 203, 101, 0.08);
+  color: var(--amber);
+}
+
+.notice-info {
+  border: 1px solid rgba(112, 230, 176, 0.4);
+  border-radius: 6px;
+  padding: 10px 14px;
+  background: rgba(112, 230, 176, 0.08);
+  color: var(--mint);
+}
+
+/* Trust boundary split card */
+.boundaryLead {
+  margin: 12px 0 16px;
+  color: #d1ded7;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.boundarySplitGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 16px 0;
+}
+
+.boundarySplitCol {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px 14px;
+  background: rgba(8, 20, 17, 0.6);
+}
+
+.provenCol {
+  border-color: rgba(112, 230, 176, 0.25);
+}
+
+.unprovenCol {
+  border-color: rgba(255, 139, 148, 0.22);
+}
+
+.splitHeader {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.provenCol .splitHeader {
+  color: var(--mint);
+}
+
+.unprovenCol .splitHeader {
+  color: var(--rose);
+}
+
+.boundarySplitCol ul {
+  margin: 0;
+  padding-left: 14px;
+  color: #a7bbb0;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.boundarySplitCol li {
+  margin-bottom: 4px;
+}
+
+.abiInspectBtn {
+  margin-left: auto;
+  border: 1px solid rgba(200, 255, 90, 0.35);
+  border-radius: 4px;
+  padding: 4px 8px;
+  background: transparent;
+  color: var(--acid);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  transition: all 140ms ease;
+}
+
+.abiInspectBtn:hover {
+  border-color: var(--acid);
+  background: rgba(200, 255, 90, 0.12);
+}
+
+/* Public Signals Modal */
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(4, 10, 8, 0.85);
+  backdrop-filter: blur(8px);
+}
+
+.modalContent {
+  width: min(840px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  padding: 28px;
+  background: #0b1a16;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.modalHeader h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 20px;
+}
+
+.modalCloseBtn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.modalCloseBtn:hover {
+  border-color: var(--acid);
+  color: var(--ink);
+}
+
+.modalNotice {
+  margin-bottom: 20px;
+  border: 1px solid rgba(103, 214, 233, 0.25);
+  border-radius: 6px;
+  padding: 12px 14px;
+  background: rgba(103, 214, 233, 0.08);
+  color: #b0c4b9;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.signalsTableWrapper {
+  overflow-x: auto;
+}
+
+.signalsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.signalsTable th,
+.signalsTable td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+
+.signalsTable th {
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.signalIdx {
+  color: var(--acid);
+  font-family: var(--mono);
+  font-weight: 700;
+}
+
+.tagOutput {
+  border-radius: 4px;
+  padding: 2px 6px;
+  background: rgba(112, 230, 176, 0.15);
+  color: var(--mint);
+  font-family: var(--mono);
+  font-size: 9px;
+}
+
+.tagInput {
+  border-radius: 4px;
+  padding: 2px 6px;
+  background: rgba(103, 214, 233, 0.15);
+  color: var(--cyan);
+  font-family: var(--mono);
+  font-size: 9px;
+}
+
+.signalDesc {
+  color: #a7bbb0;
+}
+
+.modalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 24px;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+/* Timeline & Event Log */
+.executionTimelineSection {
+  border-bottom: 1px solid var(--line);
+}
+
+.timelineToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 31px 0;
+}
+
+.eventDrawerBtn {
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 5px 10px;
+  background: transparent;
+  color: var(--cyan);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  transition: all 140ms ease;
+}
+
+.eventDrawerBtn:hover {
+  border-color: var(--cyan);
+  background: rgba(103, 214, 233, 0.1);
+}
+
+.scoreRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.failedChecksCount {
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 9px;
+}
+
+.nodeMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.nodeCommitment {
+  color: var(--cyan);
+  font-family: var(--mono);
+  font-size: 9px;
+}
+
+.connectorStage {
+  color: var(--mint);
+  font-weight: 700;
+}
+
+.connectorDelta {
+  margin-top: 2px;
+  color: var(--acid);
+  font-size: 9px;
+}
+
+.eventsPanel {
+  border-top: 1px solid var(--line);
+  padding: 18px 31px 24px;
+  background: rgba(6, 18, 14, 0.95);
+}
+
+.eventsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.eventsTitle {
+  color: var(--mint);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.eventsFilters {
+  display: flex;
+  gap: 6px;
+}
+
+.filterChip {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 3px 8px;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 9px;
+}
+
+.filterChip.active {
+  border-color: var(--mint);
+  background: rgba(112, 230, 176, 0.15);
+  color: var(--mint);
+}
+
+.eventsList {
+  display: grid;
+  gap: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.eventItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 4px;
+  padding: 6px 10px;
+  background: rgba(12, 30, 24, 0.7);
+  font-size: 11px;
+}
+
+.eventTime {
+  flex: 0 0 65px;
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.eventStage {
+  flex: 0 0 82px;
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-family: var(--mono);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+
+.stage-generated {
+  background: rgba(103, 214, 233, 0.15);
+  color: var(--cyan);
+}
+
+.stage-evaluated {
+  background: rgba(255, 203, 101, 0.15);
+  color: var(--amber);
+}
+
+.stage-critiqued {
+  background: rgba(255, 139, 148, 0.15);
+  color: var(--rose);
+}
+
+.stage-revised {
+  background: rgba(112, 230, 176, 0.15);
+  color: var(--mint);
+}
+
+.stage-guardrail {
+  background: rgba(200, 255, 90, 0.2);
+  color: var(--acid);
+  font-weight: 900;
+}
+
+.eventVersion {
+  flex: 0 0 25px;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-weight: 700;
+}
+
+.eventMessage {
+  flex: 1;
+  color: #c0d3c7;
+}
+
+/* Diff & Policy Inspector */
+.fieldToggleBtn {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 4px 9px;
+  background: transparent;
+  color: var(--mint);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.fieldToggleBtn:hover {
+  border-color: var(--mint);
+  background: rgba(112, 230, 176, 0.08);
+}
+
+.emptyDiffNotice {
+  border: 1px dashed var(--line);
+  border-radius: 6px;
+  padding: 24px;
+  background: rgba(8, 24, 19, 0.4);
+}
+
+.policyInspectorTable {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.policyTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.policyTable th,
+.policyTable td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+
+.policyTable th {
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.rowChanged {
+  background: rgba(112, 230, 176, 0.06);
+}
+
+.typeBadge {
+  border-radius: 3px;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 9px;
+}
+
+.policyValBadge {
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.valTrue {
+  background: rgba(112, 230, 176, 0.15);
+  color: var(--mint);
+}
+
+.valFalse {
+  background: rgba(255, 139, 148, 0.15);
+  color: var(--rose);
+}
+
+.valNum {
+  background: rgba(103, 214, 233, 0.15);
+  color: var(--cyan);
+}
+
+.changedTag {
+  margin-left: 8px;
+  border-radius: 3px;
+  padding: 1px 5px;
+  background: rgba(200, 255, 90, 0.15);
+  color: var(--acid);
+  font-family: var(--mono);
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.versionSourceTag {
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+/* Verifiability ledger states and artifacts */
+.statusPill.stateSettled {
+  border-color: rgba(112, 230, 176, 0.6);
+  background: rgba(112, 230, 176, 0.12);
+  color: var(--mint);
+}
+
+.statusPill.stateVerified {
+  border-color: rgba(103, 214, 233, 0.6);
+  background: rgba(103, 214, 233, 0.12);
+  color: var(--cyan);
+}
+
+.statusPill.statePinned {
+  border-color: rgba(200, 255, 90, 0.6);
+  background: rgba(200, 255, 90, 0.12);
+  color: var(--acid);
+}
+
+.statusPill.statePrepared {
+  border-color: rgba(255, 203, 101, 0.6);
+  background: rgba(255, 203, 101, 0.12);
+  color: var(--amber);
+}
+
+.statusPill.stateUnconfigured {
+  border-color: var(--line);
+  color: var(--muted);
+}
+
+.stateSuccess {
+  color: var(--mint);
+}
+
+.stateInfo {
+  color: var(--cyan);
+}
+
+.statePending {
+  color: var(--amber);
+}
+
+.stateMuted {
+  color: var(--faint);
+}
+
+.ledgerIcon.source {
+  border-color: rgba(103, 214, 233, 0.5);
+  color: var(--cyan);
+}
+
+.ledgerIcon.pending {
+  border-color: rgba(255, 203, 101, 0.5);
+  color: var(--amber);
+}
+
+.attestStatusTitle {
+  margin-bottom: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.messagePinned .attestStatusTitle {
+  color: var(--mint);
+}
+
+.messagePrepared .attestStatusTitle {
+  color: var(--amber);
+}
+
+.attestArtifacts {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.artifactRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.artifactRow span {
+  color: var(--muted);
+}
+
+/* Agent Beta and Collective Memory */
+.registryQueryBox {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.checkRegistryBtn {
+  padding: 8px 14px;
+  font-size: 11px;
+}
+
+.taskHashLabel {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.registryNotice {
+  margin-top: 14px;
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.notice-unconfigured {
+  border: 1px solid rgba(255, 203, 101, 0.3);
+  background: rgba(255, 203, 101, 0.08);
+  color: var(--amber);
+}
+
+.notice-verified-memory {
+  border: 1px solid rgba(112, 230, 176, 0.3);
+  background: rgba(112, 230, 176, 0.08);
+  color: var(--mint);
+}
+
+.notice-not-found {
+  border: 1px solid rgba(103, 214, 233, 0.3);
+  background: rgba(103, 214, 233, 0.08);
+  color: var(--cyan);
+}
+
+.noticeBadge {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.pointerDetails {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.memoryRightCol {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.memoryCardsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.memoryProvenanceNote {
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 9px;
+}
+
+.cardFailureCode {
+  color: var(--amber);
+}
+
+.cardStrategy {
+  margin: 6px 0 10px;
+  color: #c5d7cd;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px dashed var(--line);
+  padding-top: 6px;
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 9px;
+}
+
+.flowNode {
+  border-radius: 4px;
+  padding: 3px 6px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.repairSection {
+  margin-top: 14px;
+}
+
+.repairHeader {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.repairPlanBlock {
+  margin-top: 16px;
+}
+
+.evaluatorMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rubricVersionTag {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 3px 6px;
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 9px;
+}
+
+.checkRowPass {
+  border-left: 2px solid var(--mint);
+}
+
+.checkRowFail {
+  border-left: 2px solid var(--rose);
+}
+
+.checkInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.checkDetail {
+  margin: 2px 0 0;
+  color: var(--faint);
+  font-size: 9px;
+}
+
+.checkFailureCode {
+  display: inline-block;
+  margin-top: 2px;
+  color: var(--amber);
+  font-family: var(--mono);
+  font-size: 8px;
+}
+
+.ptsEarned {
+  color: var(--mint);
+  font-weight: 700;
+}
+
+.ptsZero {
+  color: var(--faint);
+}

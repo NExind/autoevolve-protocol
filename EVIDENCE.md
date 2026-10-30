@@ -4,19 +4,19 @@ This is an append-only, non-secret ledger. It is the source of truth for words
 such as pinned, locally verified, and on-chain settled. An empty value means
 the action has **not** been observed; it is not a task for a model to invent.
 
-| Evidence gate                                 | Owner           | Status           | Observed artifact                                                                       |
-| --------------------------------------------- | --------------- | ---------------- | --------------------------------------------------------------------------------------- |
-| Sanitized memory snapshot                     | agent-memory    | not observed     | —                                                                                       |
-| Pinata public CID                             | agent-memory    | not observed     | —                                                                                       |
-| V1-to-V2 local Groth16 verification           | agent-zk        | not observed     | —                                                                                       |
-| V2-to-V3 local Groth16 verification           | agent-zk        | not observed     | —                                                                                       |
-| Generated verifier deployed on Base Sepolia   | agent-zk        | not observed     | —                                                                                       |
-| Adapter and registry deployed on Base Sepolia | agent-zk        | not observed     | —                                                                                       |
-| Registry escrow funded                        | agent-zk        | not observed     | —                                                                                       |
-| V1-to-V2 settlement receipt                   | agent-zk        | not observed     | —                                                                                       |
-| V2-to-V3 settlement receipt                   | agent-zk        | not observed     | —                                                                                       |
-| Agent Beta reads a CID/hash-validated card    | agent-memory    | not observed     | —                                                                                       |
-| Dashboard HTTP smoke test                     | agent-dashboard | observed locally | Homepage/API smoke test passed on 2026-10-30; record a browser artifact when available. |
+| Evidence gate                                 | Owner           | Status           | Observed artifact                                                                                                 |
+| --------------------------------------------- | --------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Sanitized memory snapshot                     | agent-memory    | not observed     | —                                                                                                                 |
+| Pinata public CID                             | agent-memory    | not observed     | —                                                                                                                 |
+| V1-to-V2 local Groth16 verification           | agent-zk        | not observed     | —                                                                                                                 |
+| V2-to-V3 local Groth16 verification           | agent-zk        | not observed     | —                                                                                                                 |
+| Generated verifier deployed on Base Sepolia   | agent-zk        | not observed     | —                                                                                                                 |
+| Adapter and registry deployed on Base Sepolia | agent-zk        | not observed     | —                                                                                                                 |
+| Registry escrow funded                        | agent-zk        | not observed     | —                                                                                                                 |
+| V1-to-V2 settlement receipt                   | agent-zk        | not observed     | —                                                                                                                 |
+| V2-to-V3 settlement receipt                   | agent-zk        | not observed     | —                                                                                                                 |
+| Agent Beta reads a CID/hash-validated card    | agent-memory    | not observed     | —                                                                                                                 |
+| Dashboard HTTP smoke test                     | agent-dashboard | observed locally | Desktop (1440x900) & mobile (375x812) browser smoke tests passed on 2026-10-31; real Chrome screenshots captured. |
 
 ## How to add evidence
 
@@ -46,3 +46,4 @@ _No production registry-to-CID retrieval observed yet._
   deterministic replay score sequence 40 → 70 → 100, prepared attestation
   without Pinata, 503 live-mode failure without Gemini, and unconfigured memory
   lookup without registry settings. This is not proof or settlement evidence.
+- 2026-10-31: Automated browser QA and API smoke suite passed with zero errors (`apps/web/test/smoke.mjs`). Observed desktop render (1440x900, 462,481 bytes) and narrow mobile render (375x812, 164,986 bytes) using headless Chrome. Verified honest showcase replay banner, 503 unauthenticated Gemini error handling, prepared local snapshot state with canonical hash, unconfigured registry state, 13-signal public ABI modal, and safe memory retrieval flow without fabricated green states.
