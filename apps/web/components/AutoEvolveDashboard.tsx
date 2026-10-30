@@ -12,6 +12,8 @@ import {
   type AttestationState,
 } from "./VerifiabilityLedger";
 import { AgentBetaMemoryView } from "./AgentBetaMemoryView";
+import { JudgeDemoGuide } from "./JudgeDemoGuide";
+import { PublicSignalsModal } from "./PublicSignalsModal";
 
 function truncate(value: string, left = 9, right = 7): string {
   if (value.length <= left + right + 3) return value;
@@ -26,6 +28,7 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
   const [noticeTone, setNoticeTone] = useState<"info" | "warn" | "error">(
     "info",
   );
+  const [showAbiModal, setShowAbiModal] = useState(false);
   const [attestation, setAttestation] = useState<AttestationState>({
     status: "idle",
   });
@@ -166,6 +169,11 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
         </div>
 
         <div className="topbarRight">
+          <JudgeDemoGuide
+            onRunShowcase={() => execute("showcase")}
+            onOpenAbi={() => setShowAbiModal(true)}
+          />
+
           <div className="networkBadge">
             <span
               className={`networkDot ${registryAddress ? "dotConfigured" : "dotUnconfigured"}`}
@@ -246,7 +254,7 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
         </div>
 
         {/* Cryptographic Trust Boundary Card */}
-        <TrustBoundaryCard />
+        <TrustBoundaryCard onOpenAbi={() => setShowAbiModal(true)} />
       </section>
 
       {/* Metric Rail */}
@@ -331,6 +339,10 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
           are stored or claimed as proven.
         </div>
       </footer>
+
+      {showAbiModal && (
+        <PublicSignalsModal onClose={() => setShowAbiModal(false)} />
+      )}
     </main>
   );
 }

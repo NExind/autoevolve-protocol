@@ -3,8 +3,20 @@
 import { useState } from "react";
 import { PublicSignalsModal } from "./PublicSignalsModal";
 
-export function TrustBoundaryCard() {
-  const [showModal, setShowModal] = useState(false);
+interface TrustBoundaryCardProps {
+  onOpenAbi?: () => void;
+}
+
+export function TrustBoundaryCard({ onOpenAbi }: TrustBoundaryCardProps) {
+  const [internalModal, setInternalModal] = useState(false);
+
+  const handleOpen = () => {
+    if (onOpenAbi) {
+      onOpenAbi();
+    } else {
+      setInternalModal(true);
+    }
+  };
 
   return (
     <>
@@ -55,17 +67,15 @@ export function TrustBoundaryCard() {
           <span>10 deterministic checks</span>
           <span>100 point ceiling</span>
           <span>Output-first 13 public signals</span>
-          <button
-            type="button"
-            className="abiInspectBtn"
-            onClick={() => setShowModal(true)}
-          >
+          <button type="button" className="abiInspectBtn" onClick={handleOpen}>
             Inspect 13-Signal ABI ↗
           </button>
         </div>
       </aside>
 
-      {showModal && <PublicSignalsModal onClose={() => setShowModal(false)} />}
+      {internalModal && (
+        <PublicSignalsModal onClose={() => setInternalModal(false)} />
+      )}
     </>
   );
 }
