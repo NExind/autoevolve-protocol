@@ -15,7 +15,7 @@ the action has **not** been observed; it is not a task for a model to invent.
 | Registry escrow funded                        | agent-zk        | observed on-chain | Funded 0.0002 ETH (tx `0xe97cfe3d76aaf64118d8c8e83b79c51086557442a0313442f7b2be7786bfc78c`, block 52391195; re-funded 0.0002 ETH tx `0xa8ecd87a6e92ca8c69dc3ffcdaf4313b37ae7d63f808668f3d5b9635e35447af`, block 52402130)                                       |
 | V1-to-V2 settlement receipt                   | agent-zk        | observed on-chain | tx `0x50658aff19d309cbc1cab639d1070214f0a66f9b46cef14dcce41f681325884f` (score 40 -> 70, reward paid 0.0001 ETH to agent `0xDad3D7fe51f2dBeA9EC02c956304840c5d8A2F46`, bound to CID `bafkreieh2vkmptacucurtcu7wrsepinjsmjh4dcbktk6y633ufd25z5ajm`)              |
 | V2-to-V3 settlement receipt                   | agent-zk        | observed on-chain | tx `0xf611bf34e33a4e8b81580a1d4010a0e3343d765aedfb6effee7346b252e8bb5f` (score 70 -> 100, reward paid 0.0001 ETH to agent `0xDad3D7fe51f2dBeA9EC02c956304840c5d8A2F46`, final version 3)                                                                        |
-| Agent Beta reads a CID/hash-validated card    | agent-memory    | not observed      | —                                                                                                                                                                                                                                                               |
+| Agent Beta reads a CID/hash-validated card    | agent-memory    | observed          | Base Sepolia registry (`0x24473c0043b13d56874d10de9675728e2014a66c`) settled pointer (v3, score 100) bound to CID `bafkreieh2vkmptacucurtcu7wrsepinjsmjh4dcbktk6y633ufd25z5ajm` retrieved 9 verified allowlisted memory cards via `/api/memory/search`.         |
 | Dashboard HTTP smoke test                     | agent-dashboard | observed locally  | Desktop (1440x900) & mobile (375x812) browser smoke tests passed on 2026-10-31; real Chrome screenshots captured.                                                                                                                                               |
 
 ## How to add evidence
@@ -52,7 +52,7 @@ proving key, witness, raw private prompt, or unredacted user data.
 
 ### Agent Beta
 
-_No production registry-to-CID retrieval observed yet._
+- 2026-10-31: Verified end-to-end decentralized memory retrieval pipeline from Base Sepolia registry (`0x24473c0043b13d56874d10de9675728e2014a66c`) to IPFS CID (`bafkreieh2vkmptacucurtcu7wrsepinjsmjh4dcbktk6y633ufd25z5ajm`) for taskHash `0xee47106d1510135e97c62f99e8ca2e018320588c9da88917a11d55bbeff49890`. GET `/api/memory/search` confirmed status 'verified-memory', pointer version 3, score 100/100, exact keccak256 CID hash match (`0xdbcd95c628c3d73fb3d13e4a99a4bebd5c5250347652db12e13857435924dc43`), and returned 9 safe allowlisted MemoryCards and 9 InheritedLessons with zero prompt or secret leakage. Dashboard interaction with 'Check On-Chain Registry Memory' visibly verified '✓ ON-CHAIN MEMORY ACTIVE', real CID, score 100/100, and 9 verified memory cards.
 
 ### Dashboard
 
