@@ -8,6 +8,7 @@
     "dev": "pnpm --filter @autoevolve/web dev",
     "build": "pnpm --filter @autoevolve/web build",
     "lint": "pnpm --filter @autoevolve/web lint",
+    "check": "pnpm --filter @autoevolve/core check && pnpm --filter @autoevolve/memory check && pnpm --filter @autoevolve/chain check && pnpm --filter @autoevolve/contracts check && pnpm --filter @autoevolve/web lint",
     "test": "pnpm --filter @autoevolve/core test && pnpm --filter @autoevolve/memory test && pnpm --filter @autoevolve/chain test && pnpm --filter @autoevolve/contracts test",
     "test:core": "pnpm --filter @autoevolve/core test",
     "contracts:compile": "pnpm --filter @autoevolve/contracts compile",

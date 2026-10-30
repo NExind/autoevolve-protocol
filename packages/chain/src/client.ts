@@ -62,6 +62,13 @@ export function hashTaskId(taskId: string): Hex {
   return hashUtf8ToBytes32(taskId);
 }
 
+export function textOrBytes32ToHash(value: string): Hex {
+  if (/^0x[a-fA-F0-9]{64}$/.test(value)) {
+    return value.toLowerCase() as Hex;
+  }
+  return hashUtf8ToBytes32(value);
+}
+
 export function bytes32ToLimbs(value: Hex): { low: bigint; high: bigint } {
   return hashToUint128Limbs(value);
 }

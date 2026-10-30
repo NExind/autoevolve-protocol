@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildPublicSignals } from "./client";
+import { buildPublicSignals, textOrBytes32ToHash } from "./client";
 
 describe("public-signal builder", () => {
   it("keeps the circuit/registry order at 13 values", () => {
@@ -21,5 +21,14 @@ describe("public-signal builder", () => {
     expect(signals[0]).toBe(40n);
     expect(signals[1]).toBe(70n);
     expect(signals[2]).toBe(3n);
+  });
+});
+
+describe("textOrBytes32ToHash", () => {
+  it("preserves a bytes32 value and hashes arbitrary text", () => {
+    const bytes32 =
+      "0x1111111111111111111111111111111111111111111111111111111111111111";
+    expect(textOrBytes32ToHash(bytes32)).toBe(bytes32);
+    expect(textOrBytes32ToHash("showcase-run")).toMatch(/^0x[a-f0-9]{64}$/);
   });
 });

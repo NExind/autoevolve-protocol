@@ -5,6 +5,7 @@ import {
   autoEvolveRegistryAbi,
   hashTaskId,
   hashUtf8ToBytes32,
+  textOrBytes32ToHash,
 } from "@autoevolve/chain";
 import { type Address, type Hex } from "viem";
 import { agentSettlementClients, requiredAddress } from "./deploy-utils.js";
@@ -189,9 +190,9 @@ const taskId = required(options, "task-id");
 const cid = required(options, "cid");
 const v1v2Path = resolve(process.cwd(), required(options, "v1-v2"));
 const v2v3Path = resolve(process.cwd(), required(options, "v2-v3"));
-const runId = hashUtf8ToBytes32(runIdText);
+const runId = textOrBytes32ToHash(runIdText);
 const taskHash = hashTaskId(taskId);
-const rubricHash = hashUtf8ToBytes32(options.rubric ?? "policy-rubric-v1");
+const rubricHash = textOrBytes32ToHash(options.rubric ?? "policy-rubric-v1");
 const registry = requiredAddress("REGISTRY_ADDRESS");
 const { account, publicClient, walletClient } = agentSettlementClients();
 

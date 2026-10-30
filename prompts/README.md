@@ -11,7 +11,9 @@ agents without a manager.
 | 3      | AGENT_MEMORY.md    | IPFS memory, registry client, attestation routes |
 | 4      | AGENT_DASHBOARD.md | Dashboard, demo, browser-quality assurance       |
 
-Before starting all devices, create a GitHub remote and run:
+Before starting all devices, create a GitHub remote and run this once. It
+creates labels plus the eight work-board issues without duplicating existing
+ones:
 
     pnpm github:bootstrap -- --repo OWNER/REPOSITORY
 

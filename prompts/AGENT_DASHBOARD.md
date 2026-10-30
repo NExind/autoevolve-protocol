@@ -15,9 +15,10 @@ must be beautiful without ever overstating what ran.
 
 ## Read before editing
 
-Read PROJECT_CONTEXT.md, ARCHITECTURE.md, API_CONTRACT.md, AGENTS.md, and
-coordination/PROTOCOL.md. Claim UI-01. Ask agent-core and agent-memory for
-their current stable API response shapes before relying on new fields.
+Read PROJECT_CONTEXT.md, ARCHITECTURE.md, API_CONTRACT.md, AGENTS.md,
+apps/web/AGENTS.md, and coordination/PROTOCOL.md. Claim UI-01. Ask agent-core
+and agent-memory for their current stable API response shapes before relying on
+new fields.
 
 ## Your ownership boundary
 
