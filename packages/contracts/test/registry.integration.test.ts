@@ -71,6 +71,7 @@ integrationDescribe("AutoEvolveRegistry local integration", () => {
   let agent: ReturnType<typeof privateKeyToAccount>;
 
   let mockVerifierArtifact: Artifact;
+  let mockVerifier: Address;
   let registryArtifact: Artifact;
   let registry: Address;
   let runId: Hex;
@@ -130,7 +131,7 @@ integrationDescribe("AutoEvolveRegistry local integration", () => {
     const verifierReceipt = await publicClient.waitForTransactionReceipt({
       hash: verifierHash,
     });
-    const mockVerifier = verifierReceipt.contractAddress;
+    mockVerifier = verifierReceipt.contractAddress;
     if (!mockVerifier) {
       throw new Error("Mock verifier deployment did not return an address.");
     }
@@ -215,6 +216,155 @@ integrationDescribe("AutoEvolveRegistry local integration", () => {
         args: [runId, 1, 2, 22n, cid, proof, publicSignals],
       }),
     ).rejects.toThrow();
+  });
+
+  it("rejects settlement when the public signal stage does not match the transition target", async () => {
+    const wrongStageSignals = [...publicSignals];
+    wrongStageSignals[10] = 3n; // stage 3 instead of target toVersion 2
+    await expect(
+      agentClient.writeContract({
+        address: registry,
+        abi: registryArtifact.abi,
+        functionName: "settleImprovement",
+        args: [runId, 1, 2, 22n, cid, proof, wrongStageSignals],
+      }),
+    ).rejects.toThrow();
+  });
+
+  it("rejects transition when registry escrow balance is insufficient", async () => {
+    const unfundedRegistryHash = await ownerClient.deployContract({
+      abi: registryArtifact.abi,
+      bytecode: registryArtifact.bytecode,
+      args: [mockVerifier, rewardWei],
+    });
+    const unfundedReceipt = await publicClient.waitForTransactionReceipt({
+      hash: unfundedRegistryHash,
+    });
+    const unfundedRegistry = unfundedReceipt.contractAddress;
+    const unfundedRunId = keccak256(stringToHex("unfunded-escrow-run"));
+
+    const startHash = await agentClient.writeContract({
+      address: unfundedRegistry,
+      abi: registryArtifact.abi,
+      functionName: "startRun",
+      args: [unfundedRunId, taskHash, rubricHash, 11n, 40, cid],
+    });
+    await publicClient.waitForTransactionReceipt({ hash: startHash });
+
+    await expect(
+      agentClient.writeContract({
+        address: unfundedRegistry,
+        abi: registryArtifact.abi,
+        functionName: "settleImprovement",
+        args: [unfundedRunId, 1, 2, 22n, cid, proof, publicSignals],
+      }),
+    ).rejects.toThrow();
+  });
+
+  it("verifies genuine Groth16 proofs on-chain using GeneratedGroth16Verifier and Groth16VerifierAdapter", async () => {
+    const [generatedVerifierArtifact, adapterArtifact] = await Promise.all([
+      artifact("generated/GeneratedGroth16Verifier.sol", "Groth16Verifier"),
+      artifact("Groth16VerifierAdapter.sol", "Groth16VerifierAdapter"),
+    ]);
+
+    const verifierHash = await ownerClient.deployContract({
+      abi: generatedVerifierArtifact.abi,
+      bytecode: generatedVerifierArtifact.bytecode,
+    });
+    const verifierReceipt = await publicClient.waitForTransactionReceipt({
+      hash: verifierHash,
+    });
+    const generatedVerifier = verifierReceipt.contractAddress;
+
+    const adapterHash = await ownerClient.deployContract({
+      abi: adapterArtifact.abi,
+      bytecode: adapterArtifact.bytecode,
+      args: [generatedVerifier],
+    });
+    const adapterReceipt = await publicClient.waitForTransactionReceipt({
+      hash: adapterHash,
+    });
+    const adapter = adapterReceipt.contractAddress;
+
+    const v1v2SettlementPath = resolve(
+      packageDirectory,
+      "../../circuits/proofs/v1-v2/settlement.json",
+    );
+    const v2v3SettlementPath = resolve(
+      packageDirectory,
+      "../../circuits/proofs/v2-v3/settlement.json",
+    );
+
+    const [v1v2Raw, v2v3Raw] = await Promise.all([
+      readFile(v1v2SettlementPath, "utf8"),
+      readFile(v2v3SettlementPath, "utf8"),
+    ]);
+    const v1v2 = JSON.parse(v1v2Raw);
+    const v2v3 = JSON.parse(v2v3Raw);
+
+    const v1v2SolProof = {
+      a: [BigInt(v1v2.proof.a[0]), BigInt(v1v2.proof.a[1])] as const,
+      b: [
+        [BigInt(v1v2.proof.b[0][0]), BigInt(v1v2.proof.b[0][1])],
+        [BigInt(v1v2.proof.b[1][0]), BigInt(v1v2.proof.b[1][1])],
+      ] as const,
+      c: [BigInt(v1v2.proof.c[0]), BigInt(v1v2.proof.c[1])] as const,
+    };
+    const v1v2PubSignals = v1v2.publicSignals.map(BigInt) as [
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+    ];
+
+    const isV1V2Verified = (await publicClient.readContract({
+      address: adapter,
+      abi: adapterArtifact.abi,
+      functionName: "verifyProof",
+      args: [v1v2SolProof, v1v2PubSignals],
+    })) as boolean;
+    expect(isV1V2Verified).toBe(true);
+
+    const v2v3SolProof = {
+      a: [BigInt(v2v3.proof.a[0]), BigInt(v2v3.proof.a[1])] as const,
+      b: [
+        [BigInt(v2v3.proof.b[0][0]), BigInt(v2v3.proof.b[0][1])],
+        [BigInt(v2v3.proof.b[1][0]), BigInt(v2v3.proof.b[1][1])],
+      ] as const,
+      c: [BigInt(v2v3.proof.c[0]), BigInt(v2v3.proof.c[1])] as const,
+    };
+    const v2v3PubSignals = v2v3.publicSignals.map(BigInt) as [
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+    ];
+
+    const isV2V3Verified = (await publicClient.readContract({
+      address: adapter,
+      abi: adapterArtifact.abi,
+      functionName: "verifyProof",
+      args: [v2v3SolProof, v2v3PubSignals],
+    })) as boolean;
+    expect(isV2V3Verified).toBe(true);
   });
 
   it("settles a verified transition, records its pointer, pays once, and prevents replay", async () => {
