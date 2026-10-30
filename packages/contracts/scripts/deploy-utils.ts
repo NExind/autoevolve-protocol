@@ -138,6 +138,6 @@ export async function deployArtifact(
     deployer: account.address,
     transactionHash: hash,
     contractAddress: receipt.contractAddress,
-    blockNumber: receipt.blockNumber,
+    blockNumber: receipt.blockNumber.toString(),
   };
 }

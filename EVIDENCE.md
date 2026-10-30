@@ -4,19 +4,19 @@ This is an append-only, non-secret ledger. It is the source of truth for words
 such as pinned, locally verified, and on-chain settled. An empty value means
 the action has **not** been observed; it is not a task for a model to invent.
 
-| Evidence gate                                 | Owner           | Status           | Observed artifact                                                                                                     |
-| --------------------------------------------- | --------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Sanitized memory snapshot                     | agent-memory    | observed locally | Canonical SnapshotCore schema validated across 29 test vectors with strict score progression and payload sha256 hash. |
-| Pinata public CID                             | agent-memory    | not observed     | —                                                                                                                     |
-| V1-to-V2 local Groth16 verification           | agent-zk        | observed locally | `circuits/proofs/v1-v2/settlement.json` (verified score 40 -> 70, 13 output-first signals)                            |
-| V2-to-V3 local Groth16 verification           | agent-zk        | observed locally | `circuits/proofs/v2-v3/settlement.json` (verified score 70 -> 100, 13 output-first signals)                           |
-| Generated verifier deployed on Base Sepolia   | agent-zk        | not observed     | —                                                                                                                     |
-| Adapter and registry deployed on Base Sepolia | agent-zk        | not observed     | —                                                                                                                     |
-| Registry escrow funded                        | agent-zk        | not observed     | —                                                                                                                     |
-| V1-to-V2 settlement receipt                   | agent-zk        | not observed     | —                                                                                                                     |
-| V2-to-V3 settlement receipt                   | agent-zk        | not observed     | —                                                                                                                     |
-| Agent Beta reads a CID/hash-validated card    | agent-memory    | not observed     | —                                                                                                                     |
-| Dashboard HTTP smoke test                     | agent-dashboard | observed locally | Desktop (1440x900) & mobile (375x812) browser smoke tests passed on 2026-10-31; real Chrome screenshots captured.     |
+| Evidence gate                                 | Owner           | Status            | Observed artifact                                                                                                                                                                                                                                               |
+| --------------------------------------------- | --------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sanitized memory snapshot                     | agent-memory    | observed locally  | Canonical SnapshotCore schema validated across 29 test vectors with strict score progression and payload sha256 hash.                                                                                                                                           |
+| Pinata public CID                             | agent-memory    | not observed      | —                                                                                                                                                                                                                                                               |
+| V1-to-V2 local Groth16 verification           | agent-zk        | observed locally  | `circuits/proofs/v1-v2/settlement.json` (verified score 40 -> 70, 13 output-first signals)                                                                                                                                                                      |
+| V2-to-V3 local Groth16 verification           | agent-zk        | observed locally  | `circuits/proofs/v2-v3/settlement.json` (verified score 70 -> 100, 13 output-first signals)                                                                                                                                                                     |
+| Generated verifier deployed on Base Sepolia   | agent-zk        | observed on-chain | `0x779F13CE2479414d18961fD789C02e9866031b50` (tx `0x93d305d1811ff1e8b99e32a8be9771cf997bca2ebc9de7d2e5f5c9fd5809340b`, block 52384780)                                                                                                                          |
+| Adapter and registry deployed on Base Sepolia | agent-zk        | observed on-chain | Adapter `0x1152380988ca3e3e079ce37d0015ea8c249f6c98` (tx `0xf5846bd4f08349be84fc9f920e4837986be0c56bd4eee40c10ab9eaa9c7c3eb2`); Registry `0x90b1453d9e0180e44a9d2b49f106a4ca921d7906` (tx `0x56cb356bf29f43f6b900f4e94fbd3b7927ca87d76981125760a88098a8b88fd8`) |
+| Registry escrow funded                        | agent-zk        | observed on-chain | Funded 0.0002 ETH (tx `0x64198367401bed1e552acc8315f150866376f525a52edffb5934fac27bedc5fa`, block 52386306)                                                                                                                                                     |
+| V1-to-V2 settlement receipt                   | agent-zk        | observed on-chain | tx `0x30e339ef3d3fc185a9980fa248e622f745dc4ff9ae62f4af1ec5fc2d86a5172b` (score 40 -> 70, reward paid 0.0001 ETH to agent `0xDad3D7fe51f2dBeA9EC02c956304840c5d8A2F46`)                                                                                          |
+| V2-to-V3 settlement receipt                   | agent-zk        | observed on-chain | tx `0xb0b96713a4475feb9f54a045228292604700a757756d5eb699a531099f757f62` (score 70 -> 100, reward paid 0.0001 ETH, final version 3)                                                                                                                              |
+| Agent Beta reads a CID/hash-validated card    | agent-memory    | not observed      | —                                                                                                                                                                                                                                                               |
+| Dashboard HTTP smoke test                     | agent-dashboard | observed locally  | Desktop (1440x900) & mobile (375x812) browser smoke tests passed on 2026-10-31; real Chrome screenshots captured.                                                                                                                                               |
 
 ## How to add evidence
 
@@ -37,7 +37,15 @@ proving key, witness, raw private prompt, or unredacted user data.
 
 ### Base Sepolia
 
-- 2026-10-31: Local verification of deployment contracts (`GeneratedGroth16Verifier.sol`, `Groth16VerifierAdapter.sol`, `AutoEvolveRegistry.sol`) observed passing in EVM Ganache environment. Test suite verified pairing precompiles, signal binding checks, and reward escrow accounting. Live Base Sepolia broadcast and settlement transactions remain pending human-provided testnet credentials (`DEPLOYER_PRIVATE_KEY`, `AGENT_PRIVATE_KEY`, `BASE_SEPOLIA_RPC_URL` in `.env.local`). No transaction hashes or explorer URLs fabricated.
+- 2026-10-31: Completed live deployment and settlement on Base Sepolia (chain ID 84532):
+  - `GeneratedGroth16Verifier.sol` deployed at `0x779F13CE2479414d18961fD789C02e9866031b50` (tx `0x93d305d1811ff1e8b99e32a8be9771cf997bca2ebc9de7d2e5f5c9fd5809340b`, block 52384780).
+  - `Groth16VerifierAdapter.sol` deployed at `0x1152380988ca3e3e079ce37d0015ea8c249f6c98` (tx `0xf5846bd4f08349be84fc9f920e4837986be0c56bd4eee40c10ab9eaa9c7c3eb2`, block 52386108).
+  - `AutoEvolveRegistry.sol` deployed at `0x90b1453d9e0180e44a9d2b49f106a4ca921d7906` (tx `0x56cb356bf29f43f6b900f4e94fbd3b7927ca87d76981125760a88098a8b88fd8`, block 52386119).
+  - Escrow funded with 0.0002 ETH (tx `0x64198367401bed1e552acc8315f150866376f525a52edffb5934fac27bedc5fa`, block 52386306).
+  - `startRun` initiated for run `0x1111111111111111111111111111111111111111111111111111111111111111` (tx `0x2242dc72385e7ac188d3a41936471e7f2980ed908dd041fd30b28b612ff00bb1`).
+  - V1-to-V2 Groth16 improvement settled on-chain (tx `0x30e339ef3d3fc185a9980fa248e622f745dc4ff9ae62f4af1ec5fc2d86a5172b`, score 40 -> 70, 0.0001 ETH bounty paid to agent).
+  - V2-to-V3 Groth16 improvement settled on-chain (tx `0xb0b96713a4475feb9f54a045228292604700a757756d5eb699a531099f757f62`, score 70 -> 100, 0.0001 ETH bounty paid to agent, verified version 3).
+  - Final on-chain state: version 3, score 100, memory pointer bound to CID `bafybeigdyrztshowcasecidplaceholder`.
 
 ### Agent Beta
 
