@@ -109,6 +109,36 @@ describe("textOrBytes32ToHash and limb helpers", () => {
     expect(cidLimbs.high).toBeGreaterThan(0n);
   });
 
+  it("authoritatively binds CID using keccak256(bytes(cid)) and not SHA-256", () => {
+    const testCid =
+      "bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi";
+    const keccakHash = hashUtf8ToBytes32(testCid);
+    const expectedLimbs = bytes32ToLimbs(keccakHash);
+    const actualLimbs = keccakToLimbs(testCid);
+
+    expect(actualLimbs.low).toBe(expectedLimbs.low);
+    expect(actualLimbs.high).toBe(expectedLimbs.high);
+
+    // Verify public signals 7 & 8 explicitly bind keccak256 CID limbs
+    const signals = buildPublicSignals({
+      previousPolicyCommitment: 10n,
+      nextPolicyCommitment: 20n,
+      runId:
+        "0x1111111111111111111111111111111111111111111111111111111111111111",
+      cid: testCid,
+      agent: "0x0000000000000000000000000000000000000001",
+      stage: 2,
+      rubricHash:
+        "0x2222222222222222222222222222222222222222222222222222222222222222",
+      previousScore: 40,
+      nextScore: 70,
+      binding: 30n,
+    });
+
+    expect(signals[7]).toBe(actualLimbs.low);
+    expect(signals[8]).toBe(actualLimbs.high);
+  });
+
   it("converts string settlement artifact to viem Solidity bigints", () => {
     const artifact = {
       proof: {
