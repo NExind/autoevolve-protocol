@@ -25,7 +25,7 @@ console.log(
       registry,
       value: value.toString(),
       transactionHash: hash,
-      blockNumber: receipt.blockNumber,
+      blockNumber: receipt.blockNumber.toString(),
     },
     null,
     2,
