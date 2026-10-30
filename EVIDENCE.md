@@ -28,6 +28,7 @@ proving key, witness, raw private prompt, or unredacted user data.
 
 - 2026-10-31: Local sanitized SnapshotCore schema validation observed passing across 29 test vectors; strict redaction of credentials/prompts/chains-of-thought/user data, 512KB payload limits, CID hash binding, and allowlisted MemoryCard extraction enforced. No production Pinata CID or Base Sepolia settlement observed yet.
 - 2026-10-31: Implemented and validated Groth16 settlement artifact parsing (`parseSettlementArtifact`), public signal binding verification (`validateSettlementBinding`), and Base Sepolia settlement receipts verification (`parseSettlementReceipts`) across 34 unit tests. Wired 5-state attestation lifecycle (`unconfigured`, `prepared`, `pinned`, `locally verified`, `on-chain settled`) in `/api/attest`. Validated that without live testnet deployment receipts or live Pinata CID, memory retrieval and attestation truthfully fail-closed to prepared/locally verified and never claim on-chain settlement.
+- 2026-10-31: Validated the complete real-evidence retrieval pipeline from verified registry pointer (binding runId and `keccak256(bytes(cid))`) through IPFS gateway fetching, runtime schema/secret validation, and allowlisted `InheritedLesson` extraction across 48 unit tests. Confirmed strict rejection of CID/pointer mismatches, score/version mismatches, wallet mismatches, malformed JSON, and secret injections. Confirmed truthful fail-closed behavior when configuration is absent or unconfigured.
 
 ### Proofs
 
