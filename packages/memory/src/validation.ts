@@ -1,6 +1,7 @@
 import {
   canonicalJson,
   dataPolicySchema,
+  hashToUint128Limbs,
   sha256Hex,
   type DataPolicy,
   type FailureCode,
@@ -9,7 +10,13 @@ import {
 import { CID } from "multiformats/cid";
 import { keccak256, stringToHex, type Hex } from "viem";
 import { z } from "zod";
-import type { MemoryCard, SnapshotCore, VerifiedMemoryPointer } from "./types";
+import type {
+  MemoryCard,
+  SettlementArtifact,
+  SettlementReceiptsArtifact,
+  SnapshotCore,
+  VerifiedMemoryPointer,
+} from "./types";
 
 export const MAX_SNAPSHOT_BYTES = 512 * 1024; // 512 KB
 
@@ -388,5 +395,168 @@ export function isSafeMemoryCard(card: MemoryCard): boolean {
   }
 }
 
+const decimalPattern = /^[0-9]+$/;
+const decimalString = z
+  .string()
+  .regex(decimalPattern, "Expected a non-negative decimal string.");
+
+export const settlementArtifactSchema = z
+  .object({
+    schemaVersion: z.literal("autoevolve-settlement/v1"),
+    locallyVerified: z.literal(true),
+    verifiedAt: z.string().optional(),
+    publicSignalOrder: z.literal("outputs-first-v1"),
+    proof: z
+      .object({
+        a: z.tuple([decimalString, decimalString]),
+        b: z.tuple([
+          z.tuple([decimalString, decimalString]),
+          z.tuple([decimalString, decimalString]),
+        ]),
+        c: z.tuple([decimalString, decimalString]),
+      })
+      .strict(),
+    publicSignals: z
+      .array(decimalString)
+      .length(13)
+      .superRefine((signals, context) => {
+        const previousScore = BigInt(signals[0]);
+        const nextScore = BigInt(signals[1]);
+        if (previousScore < 0n || previousScore > 100n) {
+          context.addIssue({
+            code: "custom",
+            message: "previousScore must be in range 0..100.",
+            path: [0],
+          });
+        }
+        if (nextScore <= previousScore || nextScore > 100n) {
+          context.addIssue({
+            code: "custom",
+            message:
+              "nextScore must strictly improve over previousScore and be <= 100.",
+            path: [1],
+          });
+        }
+      }),
+  })
+  .strict();
+
+export function parseSettlementArtifact(value: unknown): SettlementArtifact {
+  assertNoUnsafeFields(value, "settlementArtifact");
+  return settlementArtifactSchema.parse(value) as SettlementArtifact;
+}
+
+export const settlementReceiptsSchema = z
+  .object({
+    network: z.literal("base-sepolia"),
+    registry: z
+      .string()
+      .regex(/^0x[a-fA-F0-9]{40}$/, "Invalid registry address format."),
+    runId: z.string().regex(hex32, "runId must be bytes32 hex."),
+    taskHash: z.string().regex(hex32, "taskHash must be bytes32 hex."),
+    rubricHash: z.string().regex(hex32, "rubricHash must be bytes32 hex."),
+    cid: z.string().refine((c) => {
+      try {
+        assertCid(c);
+        return true;
+      } catch {
+        return false;
+      }
+    }, "cid must be a valid CIDv0 or CIDv1."),
+    agent: z
+      .string()
+      .regex(/^0x[a-fA-F0-9]{40}$/, "Invalid agent address format."),
+    finalVersion: z.number().int().min(1).max(3),
+    finalScore: z.number().int().min(0).max(100),
+    receipts: z
+      .object({
+        startRun: z
+          .string()
+          .regex(hex32, "startRun txHash must be bytes32 hex.")
+          .optional(),
+        v1ToV2: z
+          .string()
+          .regex(hex32, "v1ToV2 txHash must be bytes32 hex.")
+          .optional(),
+        v2ToV3: z
+          .string()
+          .regex(hex32, "v2ToV3 txHash must be bytes32 hex.")
+          .optional(),
+      })
+      .strict(),
+  })
+  .strict();
+
+export function parseSettlementReceipts(
+  value: unknown,
+): SettlementReceiptsArtifact {
+  assertNoUnsafeFields(value, "settlementReceipts");
+  return settlementReceiptsSchema.parse(value) as SettlementReceiptsArtifact;
+}
+
+/**
+ * Validates that a Groth16 settlement artifact's public signals bind to the expected
+ * runId, CID (via keccak256(bytes(cid))), and stage.
+ */
+export function validateSettlementBinding(
+  artifact: SettlementArtifact,
+  expected: {
+    runId?: string;
+    cid?: string;
+    stage: 2 | 3;
+    rubricHash?: string;
+  },
+): void {
+  const parsed = parseSettlementArtifact(artifact);
+  const signals = parsed.publicSignals;
+
+  if (BigInt(signals[10]) !== BigInt(expected.stage)) {
+    throw new Error(
+      `Settlement stage mismatch: expected stage ${expected.stage}, got ${signals[10]}.`,
+    );
+  }
+
+  if (expected.runId) {
+    const runIdHash = hex32.test(expected.runId)
+      ? (expected.runId.toLowerCase() as Hex)
+      : keccak256(stringToHex(expected.runId));
+    const runLimbs = hashToUint128Limbs(runIdHash);
+    if (
+      BigInt(signals[5]) !== runLimbs.low ||
+      BigInt(signals[6]) !== runLimbs.high
+    ) {
+      throw new Error("Settlement runId binding mismatch with expected runId.");
+    }
+  }
+
+  if (expected.cid) {
+    const expectedCid = assertCid(expected.cid);
+    const expectedCidHash = keccak256(stringToHex(expectedCid));
+    const cidLimbs = hashToUint128Limbs(expectedCidHash);
+    if (
+      BigInt(signals[7]) !== cidLimbs.low ||
+      BigInt(signals[8]) !== cidLimbs.high
+    ) {
+      throw new Error(
+        "Settlement CID hash binding mismatch with expected keccak256(bytes(cid)).",
+      );
+    }
+  }
+
+  if (expected.rubricHash) {
+    const rubricHashHex = hex32.test(expected.rubricHash)
+      ? (expected.rubricHash.toLowerCase() as Hex)
+      : keccak256(stringToHex(expected.rubricHash));
+    const rubricLimbs = hashToUint128Limbs(rubricHashHex);
+    if (
+      BigInt(signals[11]) !== rubricLimbs.low ||
+      BigInt(signals[12]) !== rubricLimbs.high
+    ) {
+      throw new Error("Settlement rubric binding mismatch.");
+    }
+  }
+}
+
 export type ValidatedPolicyChange = PolicyChange;
 export type ValidatedDataPolicy = DataPolicy;
+

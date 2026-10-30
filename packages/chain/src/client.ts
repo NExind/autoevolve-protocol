@@ -203,3 +203,35 @@ export async function submitSettlement(input: {
     ],
   });
 }
+
+/**
+ * Converts a string-based settlement JSON proof artifact into the exact bigint
+ * shapes required by viem's writeContract call on AutoEvolveRegistry.
+ */
+export function settlementArtifactToSolidityProof(artifact: {
+  proof: {
+    a: readonly [string, string];
+    b: readonly [readonly [string, string], readonly [string, string]];
+    c: readonly [string, string];
+  };
+  publicSignals: readonly string[];
+}): {
+  proof: Groth16Proof;
+  publicSignals: readonly bigint[];
+} {
+  if (artifact.publicSignals.length !== 13) {
+    throw new Error("Expected exactly 13 Groth16 public signals.");
+  }
+  return {
+    proof: {
+      a: [BigInt(artifact.proof.a[0]), BigInt(artifact.proof.a[1])],
+      b: [
+        [BigInt(artifact.proof.b[0][0]), BigInt(artifact.proof.b[0][1])],
+        [BigInt(artifact.proof.b[1][0]), BigInt(artifact.proof.b[1][1])],
+      ],
+      c: [BigInt(artifact.proof.c[0]), BigInt(artifact.proof.c[1])],
+    },
+    publicSignals: artifact.publicSignals.map((item) => BigInt(item)),
+  };
+}
+
