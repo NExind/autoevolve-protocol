@@ -12,6 +12,7 @@
     "@autoevolve/chain": "workspace:*",
     "@autoevolve/core": "workspace:*",
     "@autoevolve/memory": "workspace:*",
+    "dotenv": "18.0.9",
     "next": "16.4.3",
     "react": "19.3.1",
     "react-dom": "19.3.1",
