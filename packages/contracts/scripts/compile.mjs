@@ -51,6 +51,10 @@ const input = {
     // The registry validates a deliberately rich 13-signal context. viaIR
     // avoids a compiler stack-depth limit without changing Solidity semantics.
     viaIR: true,
+    // Ganache's portable test VM does not yet execute all of solc 0.8.28's
+    // newest default opcodes. Paris bytecode is valid on Base Sepolia and
+    // keeps the local integration test reproducible across CI hosts.
+    evmVersion: "paris",
     outputSelection: {
       "*": {
         "*": ["abi", "evm.bytecode.object", "evm.deployedBytecode.object"],
