@@ -185,11 +185,19 @@ async function waitForSuccess(
 }
 
 const options = parseArguments(process.argv.slice(2));
-const runIdText = required(options, "run-id");
-const taskId = required(options, "task-id");
-const cid = required(options, "cid");
-const v1v2Path = resolve(process.cwd(), required(options, "v1-v2"));
-const v2v3Path = resolve(process.cwd(), required(options, "v2-v3"));
+const runIdText =
+  options["run-id"] ??
+  "0x1111111111111111111111111111111111111111111111111111111111111111";
+const taskId = options["task-id"] ?? "data-sharing-policy-repair";
+const cid = options.cid ?? "bafybeigdyrztshowcasecidplaceholder";
+const v1v2Path = resolve(
+  process.cwd(),
+  options["v1-v2"] ?? "../../circuits/proofs/v1-v2/settlement.json",
+);
+const v2v3Path = resolve(
+  process.cwd(),
+  options["v2-v3"] ?? "../../circuits/proofs/v2-v3/settlement.json",
+);
 const runId = textOrBytes32ToHash(runIdText);
 const taskHash = hashTaskId(taskId);
 const rubricHash = textOrBytes32ToHash(options.rubric ?? "policy-rubric-v1");
