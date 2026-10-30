@@ -4,6 +4,7 @@ import {
   buildSnapshotCore,
   createGeminiEmbedder,
   pinSnapshotToPinata,
+  validateSafeMemoryCards,
   type SnapshotCore,
 } from "@autoevolve/memory";
 import { z } from "zod";
@@ -20,7 +21,10 @@ export async function POST(request: Request) {
     body = requestSchema.parse(await request.json());
   } catch {
     return Response.json(
-      { error: "Expected a JSON request with a completed run." },
+      {
+        status: "error",
+        error: "Expected a JSON request with a completed run.",
+      },
       { status: 400 },
     );
   }
@@ -32,7 +36,7 @@ export async function POST(request: Request) {
     run.versions.length !== 3
   ) {
     return Response.json(
-      { error: "A completed V1-to-V2-to-V3 run is required." },
+      { status: "error", error: "A completed V1-to-V2-to-V3 run is required." },
       { status: 400 },
     );
   }
@@ -58,6 +62,7 @@ export async function POST(request: Request) {
   } catch (error) {
     return Response.json(
       {
+        status: "error",
         error:
           error instanceof Error
             ? error.message
@@ -67,12 +72,16 @@ export async function POST(request: Request) {
     );
   }
 
+  const safeCards = validateSafeMemoryCards(snapshot);
+
   if (!process.env.PINATA_JWT) {
     return Response.json({
       status: "prepared",
       message:
-        "Snapshot was sanitized and prepared locally. Configure PINATA_JWT to create a real public IPFS CID; no CID or proof is claimed.",
+        "Snapshot was sanitized and prepared locally. Configure PINATA_JWT to create a real public IPFS CID; no CID, proof, or on-chain settlement is claimed.",
       snapshotHash: snapshot.integrity.canonicalPayloadHash,
+      cardCount: safeCards.length,
+      safeCards,
     });
   }
 
@@ -86,12 +95,18 @@ export async function POST(request: Request) {
       cid: pin.cid,
       gatewayUrl: pin.gatewayUrl,
       snapshotHash: snapshot.integrity.canonicalPayloadHash,
+      cardCount: safeCards.length,
+      safeCards: safeCards.map((card) => ({
+        ...card,
+        sourceCid: pin.cid,
+      })),
       nextStep:
-        "CID is real. Generate the Groth16 proof and call the deployed Base Sepolia registry before marking it verified.",
+        "CID is real storage evidence. Generate the Groth16 proof and settle via Base Sepolia registry before marking it verified.",
     });
   } catch (error) {
     return Response.json(
       {
+        status: "error",
         error: error instanceof Error ? error.message : "Pinata upload failed.",
       },
       { status: 502 },

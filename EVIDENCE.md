@@ -4,19 +4,19 @@ This is an append-only, non-secret ledger. It is the source of truth for words
 such as pinned, locally verified, and on-chain settled. An empty value means
 the action has **not** been observed; it is not a task for a model to invent.
 
-| Evidence gate                                 | Owner           | Status           | Observed artifact                                                                                                 |
-| --------------------------------------------- | --------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Sanitized memory snapshot                     | agent-memory    | not observed     | —                                                                                                                 |
-| Pinata public CID                             | agent-memory    | not observed     | —                                                                                                                 |
-| V1-to-V2 local Groth16 verification           | agent-zk        | not observed     | —                                                                                                                 |
-| V2-to-V3 local Groth16 verification           | agent-zk        | not observed     | —                                                                                                                 |
-| Generated verifier deployed on Base Sepolia   | agent-zk        | not observed     | —                                                                                                                 |
-| Adapter and registry deployed on Base Sepolia | agent-zk        | not observed     | —                                                                                                                 |
-| Registry escrow funded                        | agent-zk        | not observed     | —                                                                                                                 |
-| V1-to-V2 settlement receipt                   | agent-zk        | not observed     | —                                                                                                                 |
-| V2-to-V3 settlement receipt                   | agent-zk        | not observed     | —                                                                                                                 |
-| Agent Beta reads a CID/hash-validated card    | agent-memory    | not observed     | —                                                                                                                 |
-| Dashboard HTTP smoke test                     | agent-dashboard | observed locally | Desktop (1440x900) & mobile (375x812) browser smoke tests passed on 2026-10-31; real Chrome screenshots captured. |
+| Evidence gate                                 | Owner           | Status           | Observed artifact                                                                                                     |
+| --------------------------------------------- | --------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Sanitized memory snapshot                     | agent-memory    | observed locally | Canonical SnapshotCore schema validated across 29 test vectors with strict score progression and payload sha256 hash. |
+| Pinata public CID                             | agent-memory    | not observed     | —                                                                                                                     |
+| V1-to-V2 local Groth16 verification           | agent-zk        | not observed     | —                                                                                                                     |
+| V2-to-V3 local Groth16 verification           | agent-zk        | not observed     | —                                                                                                                     |
+| Generated verifier deployed on Base Sepolia   | agent-zk        | not observed     | —                                                                                                                     |
+| Adapter and registry deployed on Base Sepolia | agent-zk        | not observed     | —                                                                                                                     |
+| Registry escrow funded                        | agent-zk        | not observed     | —                                                                                                                     |
+| V1-to-V2 settlement receipt                   | agent-zk        | not observed     | —                                                                                                                     |
+| V2-to-V3 settlement receipt                   | agent-zk        | not observed     | —                                                                                                                     |
+| Agent Beta reads a CID/hash-validated card    | agent-memory    | not observed     | —                                                                                                                     |
+| Dashboard HTTP smoke test                     | agent-dashboard | observed locally | Desktop (1440x900) & mobile (375x812) browser smoke tests passed on 2026-10-31; real Chrome screenshots captured.     |
 
 ## How to add evidence
 
@@ -26,7 +26,7 @@ proving key, witness, raw private prompt, or unredacted user data.
 
 ### Memory
 
-_No real CID observed yet._
+- 2026-10-31: Local sanitized SnapshotCore schema validation observed passing across 29 test vectors; strict redaction of credentials/prompts/chains-of-thought/user data, 512KB payload limits, CID hash binding, and allowlisted MemoryCard extraction enforced. No production Pinata CID or Base Sepolia settlement observed yet.
 
 ### Proofs
 

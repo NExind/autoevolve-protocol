@@ -1,9 +1,8 @@
 import { readLatestVerifiedMemory } from "@autoevolve/chain";
 import {
   createGeminiEmbedder,
-  fetchPublicSnapshot,
   rankMemoryCards,
-  validateSafeMemoryCards,
+  retrieveVerifiedMemory,
 } from "@autoevolve/memory";
 import { isAddress, type Address, type Hex } from "viem";
 
@@ -17,7 +16,7 @@ export async function GET(request: Request) {
 
   if (!taskHash || !/^0x[a-fA-F0-9]{64}$/.test(taskHash)) {
     return Response.json(
-      { error: "A bytes32 taskHash is required." },
+      { status: "error", error: "A bytes32 taskHash is required." },
       { status: 400 },
     );
   }
@@ -37,15 +36,12 @@ export async function GET(request: Request) {
     if (!pointer) {
       return Response.json({ status: "not-found", cards: [] });
     }
-    const snapshot = await fetchPublicSnapshot(
-      pointer.cid,
-      undefined,
-      pointer.cidHash,
-    );
-    const safeCards = validateSafeMemoryCards(snapshot).map((card) => ({
-      ...card,
-      sourceCid: pointer.cid,
-    }));
+    const { snapshot, safeCards } = await retrieveVerifiedMemory({
+      pointer,
+      gateway: process.env.PINATA_GATEWAY
+        ? `https://${process.env.PINATA_GATEWAY}`
+        : undefined,
+    });
     const embedder =
       process.env.MEMORY_EMBEDDINGS_ENABLED === "true" &&
       process.env.GEMINI_API_KEY &&
@@ -68,6 +64,7 @@ export async function GET(request: Request) {
   } catch (error) {
     return Response.json(
       {
+        status: "error",
         error:
           error instanceof Error
             ? error.message
