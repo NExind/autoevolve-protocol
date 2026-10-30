@@ -1,0 +1,22 @@
+{
+  "previousRequireConsent": 1,
+  "previousRedactDirectIdentifiers": 0,
+  "previousResearchPurposeOnly": 1,
+  "previousAuditLogging": 1,
+  "previousBlockRestrictedRegions": 0,
+  "previousRequireDualApprovalHighVolume": 0,
+  "previousMinKAnonymity": 2,
+  "previousMaxExportRows": 12000,
+  "previousRetentionDays": 60,
+  "previousDailyRequestLimit": 100,
+  "nextRequireConsent": 1,
+  "nextRedactDirectIdentifiers": 1,
+  "nextResearchPurposeOnly": 1,
+  "nextAuditLogging": 1,
+  "nextBlockRestrictedRegions": 1,
+  "nextRequireDualApprovalHighVolume": 0,
+  "nextMinKAnonymity": 5,
+  "nextMaxExportRows": 12000,
+  "nextRetentionDays": 60,
+  "nextDailyRequestLimit": 100
+}

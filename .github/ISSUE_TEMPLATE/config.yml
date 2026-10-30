@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Autonomous coordination protocol
+    url: ../../blob/main/coordination/PROTOCOL.md
+    about: Read task claims, RFCs, handoffs, and blocker rules first.

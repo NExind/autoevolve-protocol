@@ -25,6 +25,21 @@ enable live Gemini and Pinata paths. A real proof still needs the x86-64 proof
 host, and a real Base Sepolia settlement needs deployed contracts, funded wallets,
 and the registry address.
 
+## Start four autonomous coding devices
+
+The repository includes a peer-to-peer collaboration protocol rather than a
+manager agent. After creating a GitHub repository and authenticating the CLI:
+
+    git remote add origin https://github.com/OWNER/REPOSITORY.git
+    git push -u origin main
+    pnpm github:bootstrap -- --repo OWNER/REPOSITORY
+
+Give each device one prompt from [prompts](prompts/README.md). They claim
+tasks, discuss interface changes, open PRs, and hand work off directly through
+GitHub. If GitHub is unavailable, they use the append-only Git-backed mailbox
+in [coordination](coordination/README.md). No API key, private wallet key, or
+private prompt belongs in either channel.
+
 ## What is runnable now
 
 - The dashboard, deterministic V1→V2→V3 replay, evaluator, changelog, and

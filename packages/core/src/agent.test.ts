@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  createDeterministicCritic,
-  runAgentLoop,
-} from "./agent";
+import { createDeterministicCritic, runAgentLoop } from "./agent";
 import { dataDaoPolicyTask, fixturePolicies } from "./fixtures";
 import type { PolicyGenerator } from "./types";
 
@@ -27,7 +24,11 @@ function generatorWith(
 describe("runAgentLoop", () => {
   it("explicitly substitutes a deterministic baseline when a model starts too strong", async () => {
     const run = await runAgentLoop({
-      generator: generatorWith(fixturePolicies.V3, fixturePolicies.V3, fixturePolicies.V3),
+      generator: generatorWith(
+        fixturePolicies.V3,
+        fixturePolicies.V3,
+        fixturePolicies.V3,
+      ),
       critic: createDeterministicCritic(),
       task: dataDaoPolicyTask,
     });

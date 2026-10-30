@@ -4,7 +4,7 @@
 
 Request:
 
-    { "mode": "showcase" | "live", "inheritance": ["optional failure code"] }
+    { "mode": "showcase" | "live" }
 
 Response:
 
@@ -16,6 +16,9 @@ Response:
 
 `showcase` is deterministic and visibly labelled. `live` requires
 `GEMINI_API_KEY`; it never silently falls back to a fabricated live result.
+The browser cannot submit memory lessons. Only a server-side path that verifies
+registry → CID hash → snapshot schema may pass allowlisted `InheritedLesson`
+values to the model loop.
 
 ## `POST /api/attest`
 
@@ -23,14 +26,18 @@ Request contains a validated completed run.
 
 Current response states:
 
-| State      | Meaning                                                                                                                         |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `prepared` | The snapshot passed the schema/sanitization path, but no Pinata credential is configured. It has no CID, proof, or transaction. |
-| `pinned`   | Pinata returned the reported CID. This is a real storage result, but it is not proof-verified or settled on-chain.              |
-| error      | The request, snapshot construction, or pin request failed.                                                                      |
+| State              | Meaning                                                                                                                         |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| `prepared`         | The snapshot passed the schema/sanitization path, but no Pinata credential is configured. It has no CID, proof, or transaction. |
+| `pinned`           | Pinata returned the reported CID. This is a real storage result, but it is not proof-verified or settled on-chain.              |
+| `locally verified` | A proof-host artifact passed local Groth16 verification; it still requires a confirmed registry transaction.                    |
+| `on-chain settled` | The registry emitted a successful improvement event in a confirmed Base Sepolia transaction.                                    |
+| error              | The request, snapshot construction, or pin request failed.                                                                      |
 
 The local proof-host and deployment workflow must add observed proof and
 transaction evidence before a UI or API may call an attestation `verified`.
+See `packages/contracts/scripts/zk/README.md` for the proof artifact and
+`packages/contracts/scripts/settle-run.ts` for the checked settlement handoff.
 
 ## Groth16 public-signal ABI
 

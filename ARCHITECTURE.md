@@ -3,8 +3,8 @@
     Next.js dashboard
       ├── /api/runs ── Gemini generator + critic ── @autoevolve/core evaluator
       ├── /api/attest ── sanitized SnapshotCore ── Pinata/IPFS CID
-      │                         └─ proof host ── Base Sepolia Registry
-      └── /api/memory/search ── registry CID ── validate ── allowlisted memory card
+      │                         └─ x86 proof host ── Groth16 artifacts ── Base Sepolia Registry
+      └── /api/memory/search ── registry CID/hash ── parse/integrity check ── allowlisted memory card
 
 ## Intended attestation data flow
 
@@ -13,13 +13,15 @@
 2. The run route makes bounded model calls. The evaluator, not the critic, is
    authoritative.
 3. The attestation route serializes and redacts a canonical `SnapshotCore` and,
-   when `PINATA_JWT` is configured, pins it. A proof-host workflow then binds
-   the real CID into the witness and emits a Groth16 proof.
+   when `PINATA_JWT` is configured, pins it. Optional embeddings are calculated
+   only for allowlisted memory cards. A proof-host workflow binds the returned
+   CID string into the witness and emits a Groth16 proof.
 4. The deployed contract checks the proof signals against stored run state,
    invokes the Groth16 verifier, stores the new CID, emits an event, and
    transfers the testnet reward.
-5. Beta retrieves the on-chain CID and only uses verified `failureCodes` and
-   `safePatchStrategies`.
+5. Beta retrieves the on-chain CID, checks `keccak256(bytes(cid))` against the
+   registry pointer, verifies snapshot integrity/schema, then only uses
+   allowlisted `failureCodes` and `safePatchStrategies`.
 
 No secret, raw system prompt, private key, or sensitive user content may be
 added to the snapshot, circuit inputs exposed publicly, browser bundle, or Git.

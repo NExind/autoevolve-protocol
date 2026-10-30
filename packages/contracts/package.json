@@ -1,0 +1,32 @@
+{
+  "name": "@autoevolve/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "compile": "node scripts/compile.mjs",
+    "test": "node scripts/compile.mjs && vitest run",
+    "zk:compile": "node scripts/zk/compile.mjs",
+    "zk:input": "node scripts/zk/generate-input.mjs",
+    "zk:prove": "node scripts/zk/prove.mjs",
+    "deploy:generated-verifier": "tsx scripts/deploy-generated-verifier.ts",
+    "deploy:registry": "tsx scripts/deploy-registry.ts",
+    "fund:escrow": "tsx scripts/fund-escrow.ts",
+    "settle:run": "tsx scripts/settle-run.ts",
+    "check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@autoevolve/chain": "workspace:*",
+    "@types/node": "26.6.6",
+    "circomlib": "2.0.5",
+    "circomlibjs": "0.1.7",
+    "dotenv": "18.0.9",
+    "ganache": "7.9.2",
+    "snarkjs": "0.7.6",
+    "solc": "0.8.28",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3",
+    "viem": "2.57.13",
+    "vitest": "5.0.5"
+  }
+}

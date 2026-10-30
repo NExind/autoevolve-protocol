@@ -1,0 +1,28 @@
+{
+  "name": "autoevolve-protocol",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Verifiable self-improving policy agents with ZK-attested, on-chain memory.",
+  "packageManager": "pnpm@11.25.0",
+  "scripts": {
+    "dev": "pnpm --filter @autoevolve/web dev",
+    "build": "pnpm --filter @autoevolve/web build",
+    "lint": "pnpm --filter @autoevolve/web lint",
+    "test": "pnpm --filter @autoevolve/core test && pnpm --filter @autoevolve/memory test && pnpm --filter @autoevolve/chain test && pnpm --filter @autoevolve/contracts test",
+    "test:core": "pnpm --filter @autoevolve/core test",
+    "contracts:compile": "pnpm --filter @autoevolve/contracts compile",
+    "zk:compile": "pnpm --filter @autoevolve/contracts zk:compile",
+    "zk:input": "pnpm --filter @autoevolve/contracts zk:input",
+    "zk:prove": "pnpm --filter @autoevolve/contracts zk:prove",
+    "deploy:generated-verifier": "pnpm --filter @autoevolve/contracts deploy:generated-verifier",
+    "deploy:registry": "pnpm --filter @autoevolve/contracts deploy:registry",
+    "fund:escrow": "pnpm --filter @autoevolve/contracts fund:escrow",
+    "settle:run": "pnpm --filter @autoevolve/contracts settle:run",
+    "agent:mail": "node scripts/agent-mail.mjs",
+    "github:bootstrap": "node scripts/github-bootstrap.mjs",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "3.6.2"
+  }
+}

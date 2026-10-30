@@ -83,9 +83,10 @@ function guardRevision(
   };
 }
 
-function selectStagedInitial(
-  candidate: GeneratedPolicy,
-): { version: PolicyVersion; usedDeterministicBaseline: boolean } {
+function selectStagedInitial(candidate: GeneratedPolicy): {
+  version: PolicyVersion;
+  usedDeterministicBaseline: boolean;
+} {
   const candidateVersion = makeVersion("V1", "generator", candidate);
 
   // V2 must remain below 100 so that V3 can be a second, independently
@@ -145,7 +146,10 @@ export async function runAgentLoop(input: {
     },
   );
 
-  const critique1 = await input.critic.critique({ task: input.task, version: v1 });
+  const critique1 = await input.critic.critique({
+    task: input.task,
+    version: v1,
+  });
   critiques.push(critique1);
   events.push({
     at: now(),
@@ -174,7 +178,10 @@ export async function runAgentLoop(input: {
       : `Generator revision reached ${v2.evaluation.score}/100.`,
   });
 
-  const critique2 = await input.critic.critique({ task: input.task, version: v2 });
+  const critique2 = await input.critic.critique({
+    task: input.task,
+    version: v2,
+  });
   critiques.push(critique2);
   events.push({
     at: now(),
@@ -245,9 +252,11 @@ export function createGeminiPolicyGenerator(config: {
 }): PolicyGenerator {
   const client = new GoogleGenAI({ apiKey: config.apiKey });
   const produce = async (prompt: string): Promise<GeneratedPolicy> => {
-    const response = await (client.models.generateContent as unknown as (args: unknown) => Promise<{
-      text?: string;
-    }>)({
+    const response = await (
+      client.models.generateContent as unknown as (args: unknown) => Promise<{
+        text?: string;
+      }>
+    )({
       model: config.model,
       contents: prompt,
       config: {

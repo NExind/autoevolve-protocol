@@ -1,0 +1,30 @@
+name: Human action or agent blocker
+description: Ask for a minimum safe action without leaking secrets
+title: "[BLOCKED] "
+labels:
+  - blocked
+body:
+  - type: dropdown
+    id: blocker-type
+    attributes:
+      label: Blocker type
+      options:
+        - Human credential or wallet approval
+        - External service outage
+        - Cross-agent contract question
+        - Build or test failure
+    validations:
+      required: true
+  - type: textarea
+    id: exact-action
+    attributes:
+      label: Exact minimum action required
+      description: "Do not paste a secret; name only the local environment variable or approval needed."
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence and safe fallback
+    validations:
+      required: true

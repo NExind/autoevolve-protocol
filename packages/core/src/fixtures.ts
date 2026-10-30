@@ -136,7 +136,8 @@ export function createShowcaseRun(): AgentRun {
         at: fixtureClock[1],
         stage: "revised",
         version: "V2",
-        message: "Guarded revision preserved a strict score increase to 70/100.",
+        message:
+          "Guarded revision preserved a strict score increase to 70/100.",
       },
       {
         at: "2026-10-30T16:00:04.000Z",

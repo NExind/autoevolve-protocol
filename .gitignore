@@ -1,0 +1,25 @@
+# dependencies and build output
+node_modules/
+.next/
+dist/
+coverage/
+*.tsbuildinfo
+artifacts/
+cache/
+typechain-types/
+out/
+
+# ZK build artifacts and secrets
+circuits/build/
+circuits/*.zkey
+circuits/*.ptau
+circuits/*.wtns
+circuits/proofs/
+.env
+.env.local
+.env.*.local
+
+# local files
+*.log
+.DS_Store
+Thumbs.db
