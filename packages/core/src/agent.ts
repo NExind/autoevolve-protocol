@@ -49,7 +49,7 @@ function guardRevision(
   previous: PolicyVersion,
   candidate: GeneratedPolicy,
   changesToApply: number,
-): { version: PolicyVersion; guarded: boolean } {
+): { version: PolicyVersion; guarded: boolean; reason?: string } {
   const candidateVersion = makeVersion(
     previous.id === "V1" ? "V2" : "V3",
     "generator",
@@ -57,11 +57,24 @@ function guardRevision(
     previous,
   );
   const isIntermediateRevision = previous.id === "V1";
-  const shouldKeepCandidate =
-    isStrictImprovement(previous.evaluation, candidateVersion.evaluation) &&
-    (isIntermediateRevision
-      ? candidateVersion.evaluation.score < 100
-      : candidateVersion.evaluation.score === 100);
+
+  let reason: string | undefined;
+  if (!isStrictImprovement(previous.evaluation, candidateVersion.evaluation)) {
+    reason = `Candidate revision did not improve score (${candidateVersion.evaluation.score}/100 <= ${previous.evaluation.score}/100)`;
+  } else if (
+    isIntermediateRevision &&
+    candidateVersion.evaluation.score >= 100
+  ) {
+    reason =
+      "Candidate V2 jumped directly to 100/100, leaving no headroom for a second strict improvement in V3";
+  } else if (
+    !isIntermediateRevision &&
+    candidateVersion.evaluation.score !== 100
+  ) {
+    reason = `Candidate V3 scored ${candidateVersion.evaluation.score}/100 but must achieve 100/100 to satisfy all rubric controls`;
+  }
+
+  const shouldKeepCandidate = reason === undefined;
 
   if (shouldKeepCandidate) {
     return { version: candidateVersion, guarded: false };
@@ -80,20 +93,27 @@ function guardRevision(
       previous,
     ),
     guarded: true,
+    reason,
   };
 }
 
 function selectStagedInitial(candidate: GeneratedPolicy): {
   version: PolicyVersion;
   usedDeterministicBaseline: boolean;
+  candidateScore: number;
 } {
   const candidateVersion = makeVersion("V1", "generator", candidate);
+  const candidateScore = candidateVersion.evaluation.score;
 
   // V2 must remain below 100 so that V3 can be a second, independently
   // measurable strict improvement. Three deterministic repairs are applied at
   // V2, so the baseline needs at least four outstanding controls.
   if (candidateVersion.evaluation.failureCodes.length >= 4) {
-    return { version: candidateVersion, usedDeterministicBaseline: false };
+    return {
+      version: candidateVersion,
+      usedDeterministicBaseline: false,
+      candidateScore,
+    };
   }
 
   return {
@@ -102,6 +122,7 @@ function selectStagedInitial(candidate: GeneratedPolicy): {
       model: "deterministic-staged-baseline",
     }),
     usedDeterministicBaseline: true,
+    candidateScore,
   };
 }
 
@@ -133,8 +154,7 @@ export async function runAgentLoop(input: {
             at: now(),
             stage: "guardrail" as const,
             version: "V1" as const,
-            message:
-              "The candidate left fewer than four failed controls, so a deterministic staged baseline was selected to preserve two strict revision stages. The candidate was not presented as V1.",
+            message: `The candidate scored ${selectedInitial.candidateScore}/100 with fewer than four failed controls, so a deterministic staged baseline (40/100) was selected to preserve two strict revision stages. The candidate was not presented as V1.`,
           },
         ]
       : []),
@@ -164,17 +184,28 @@ export async function runAgentLoop(input: {
     critique: critique1,
     revision: "V2",
   });
-  const guardedV2 = guardRevision(v1, candidateV2, 3);
+  const maxAllowedV2Changes = Math.min(
+    3,
+    Math.max(1, v1.evaluation.failureCodes.length - 1),
+  );
+  const guardedV2 = guardRevision(v1, candidateV2, maxAllowedV2Changes);
   const v2 = guardedV2.version;
   if (!isStrictImprovement(v1.evaluation, v2.evaluation)) {
-    throw new Error("V2 failed the strict-improvement guardrail.");
+    throw new Error(
+      "V2 failed the strict-improvement guardrail: V2 score must exceed V1.",
+    );
+  }
+  if (v2.evaluation.score >= 100) {
+    throw new Error(
+      "V2 failed the staged guardrail: V2 score must remain strictly below 100.",
+    );
   }
   events.push({
     at: now(),
     stage: guardedV2.guarded ? "guardrail" : "revised",
     version: "V2",
     message: guardedV2.guarded
-      ? `Generator output was not a safe staged improvement; guardrail produced ${v2.evaluation.score}/100.`
+      ? `Generator output was not a safe staged improvement (${guardedV2.reason}); guardrail produced ${v2.evaluation.score}/100.`
       : `Generator revision reached ${v2.evaluation.score}/100.`,
   });
 
@@ -199,14 +230,21 @@ export async function runAgentLoop(input: {
   const guardedV3 = guardRevision(v2, candidateV3, Number.POSITIVE_INFINITY);
   const v3 = guardedV3.version;
   if (!isStrictImprovement(v2.evaluation, v3.evaluation)) {
-    throw new Error("V3 failed the strict-improvement guardrail.");
+    throw new Error(
+      "V3 failed the strict-improvement guardrail: V3 score must exceed V2.",
+    );
+  }
+  if (v3.evaluation.score !== 100) {
+    throw new Error(
+      "V3 failed to reach the required maximum score of 100/100.",
+    );
   }
   events.push({
     at: now(),
     stage: guardedV3.guarded ? "guardrail" : "revised",
     version: "V3",
     message: guardedV3.guarded
-      ? `Guardrail completed V3 at ${v3.evaluation.score}/100.`
+      ? `Generator output required completion (${guardedV3.reason}); guardrail completed V3 at ${v3.evaluation.score}/100.`
       : `Generator revision reached ${v3.evaluation.score}/100.`,
   });
 
@@ -246,6 +284,46 @@ export function createDeterministicCritic(): PolicyCritic {
   };
 }
 
+export function cleanJsonText(raw: string): string {
+  const trimmed = raw.trim();
+  if (trimmed.startsWith("```")) {
+    return trimmed
+      .replace(/^```(?:json)?\s*/i, "")
+      .replace(/\s*```$/, "")
+      .trim();
+  }
+  return trimmed;
+}
+
+export function parseGeneratedPolicyJson(
+  rawText: string | undefined | null,
+  modelName: string,
+): GeneratedPolicy {
+  if (!rawText || rawText.trim().length === 0) {
+    throw new Error("Gemini returned no structured policy text.");
+  }
+
+  const cleaned = cleanJsonText(rawText);
+  let parsedJson: unknown;
+  try {
+    parsedJson = JSON.parse(cleaned);
+  } catch (parseError) {
+    throw new Error(
+      `Gemini returned malformed JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+    );
+  }
+
+  const schemaResult = dataPolicySchema.safeParse(parsedJson);
+  if (!schemaResult.success) {
+    const details = schemaResult.error.issues
+      .map((issue) => `${issue.path.join(".") || "root"}: ${issue.message}`)
+      .join("; ");
+    throw new Error(`Gemini returned invalid policy schema: ${details}`);
+  }
+
+  return { policy: schemaResult.data, model: modelName };
+}
+
 export function createGeminiPolicyGenerator(config: {
   apiKey: string;
   model: string;
@@ -265,11 +343,7 @@ export function createGeminiPolicyGenerator(config: {
         responseJsonSchema: dataPolicyJsonSchema,
       },
     });
-    if (!response.text) {
-      throw new Error("Gemini returned no structured policy text.");
-    }
-    const parsed = dataPolicySchema.parse(JSON.parse(response.text));
-    return { policy: parsed, model: config.model };
+    return parseGeneratedPolicyJson(response.text, config.model);
   };
 
   return {
