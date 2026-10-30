@@ -8,7 +8,11 @@ import {
   policyDiff,
 } from "./evaluator";
 import { fixturePolicies } from "./fixtures";
-import { dataPolicyJsonSchema, dataPolicySchema } from "./schema";
+import {
+  dataPolicyJsonSchema,
+  dataPolicySchema,
+  inheritedLessonsSchema,
+} from "./schema";
 import type {
   AgentEvent,
   AgentRun,
@@ -132,9 +136,36 @@ export async function runAgentLoop(input: {
   task: TaskDefinition;
   inheritedLessons?: InheritedLesson[];
 }): Promise<AgentRun> {
-  const inheritedLessons = input.inheritedLessons ?? [];
+  const rawLessons = input.inheritedLessons ?? [];
+  const parsedLessons = inheritedLessonsSchema.safeParse(rawLessons);
+  if (!parsedLessons.success) {
+    const details = parsedLessons.error.issues
+      .map((i) => `${i.path.join(".") || "root"}: ${i.message}`)
+      .join("; ");
+    throw new Error(
+      `Invalid inherited lessons provided to agent loop: ${details}`,
+    );
+  }
+  const inheritedLessons = parsedLessons.data;
+
   const events: AgentEvent[] = [];
   const critiques: Critique[] = [];
+
+  if (inheritedLessons.length > 0) {
+    const summary = inheritedLessons
+      .map(
+        (l) =>
+          `${l.failureCode} (${l.sourceCid ? l.sourceCid.slice(0, 10) + "…" : "allowlisted"})`,
+      )
+      .join(", ");
+    events.push({
+      at: now(),
+      stage: "generated",
+      version: "V1",
+      message: `Agent Beta inherited ${inheritedLessons.length} verified lesson(s) from decentralized memory: [${summary}].`,
+    });
+  }
+
   const initial = await input.generator.generateInitial({
     task: input.task,
     inheritedLessons,

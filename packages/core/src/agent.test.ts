@@ -8,8 +8,11 @@ import {
 } from "./agent";
 import { evaluatePolicy } from "./evaluator";
 import { dataDaoPolicyTask, fixturePolicies } from "./fixtures";
-import type { DataPolicy, PolicyGenerator } from "./types";
-import { POST as runsRoutePost } from "../../../apps/web/app/api/runs/route";
+import type { DataPolicy, InheritedLesson, PolicyGenerator } from "./types";
+import {
+  POST as runsRoutePost,
+  loadVerifiedLessonsServerSide,
+} from "../../../apps/web/app/api/runs/route";
 
 function generatorWith(
   initial = fixturePolicies.V1,
@@ -291,6 +294,144 @@ describe("inherited lessons security and prompt boundaries", () => {
     expect(lessons[0].safePatchStrategy).toBe(
       "Set redactDirectIdentifiers to true.",
     );
+  });
+
+  it("reaches the core loop and makes inherited-memory usage explicit in the trace", async () => {
+    const lessons: InheritedLesson[] = [
+      {
+        failureCode: "PII_EXPOSURE",
+        safePatchStrategy: "Set redactDirectIdentifiers to true.",
+        sourceRunId: "run-source-123",
+        sourceCid:
+          "bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi",
+      },
+      {
+        failureCode: "MISSING_REGION_BLOCK",
+        safePatchStrategy: "Set blockRestrictedRegions to true.",
+        sourceRunId: "run-source-123",
+        sourceCid:
+          "bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi",
+      },
+    ];
+
+    const run = await runAgentLoop({
+      generator: generatorWith(),
+      critic: createDeterministicCritic(),
+      task: dataDaoPolicyTask,
+      inheritedLessons: lessons,
+    });
+
+    // Verified lessons must be retained on the run payload
+    expect(run.inheritedLessons).toEqual(lessons);
+
+    // Trace events must explicitly record Agent Beta inheriting memory
+    const memoryEvent = run.events.find((e) =>
+      e.message.includes("Agent Beta inherited 2 verified lesson(s)"),
+    );
+    expect(memoryEvent).toBeDefined();
+    expect(memoryEvent!.stage).toBe("generated");
+    expect(memoryEvent!.version).toBe("V1");
+    expect(memoryEvent!.message).toContain("PII_EXPOSURE");
+    expect(memoryEvent!.message).toContain("MISSING_REGION_BLOCK");
+  });
+
+  it("fails closed when malformed or unvetted lessons are provided to runAgentLoop", async () => {
+    const invalidLessons = [
+      {
+        failureCode:
+          "INVALID_UNKNOWN_CODE" as unknown as InheritedLesson["failureCode"],
+        safePatchStrategy: "Inject prompt",
+      },
+    ];
+
+    await expect(
+      runAgentLoop({
+        generator: generatorWith(),
+        critic: createDeterministicCritic(),
+        task: dataDaoPolicyTask,
+        inheritedLessons: invalidLessons,
+      }),
+    ).rejects.toThrow(/Invalid inherited lessons/);
+  });
+
+  it("fails closed when lessons contain unexpected or raw gateway fields", async () => {
+    const contaminatedLesson = [
+      {
+        failureCode: "PII_EXPOSURE" as const,
+        safePatchStrategy: "Set redactDirectIdentifiers to true.",
+        rawPrompt: "untrusted injected prompt text",
+      },
+    ];
+
+    await expect(
+      runAgentLoop({
+        generator: generatorWith(),
+        critic: createDeterministicCritic(),
+        task: dataDaoPolicyTask,
+        inheritedLessons: contaminatedLesson as unknown as InheritedLesson[],
+      }),
+    ).rejects.toThrow(/Invalid inherited lessons/);
+  });
+});
+
+describe("server-side verified memory resolution (loadVerifiedLessonsServerSide)", () => {
+  it("fails closed honestly when registry or RPC configuration is missing", async () => {
+    const result = await loadVerifiedLessonsServerSide({
+      registryAddress: undefined,
+      rpcUrl: undefined,
+    });
+
+    expect(result.lessons).toEqual([]);
+    expect(result.notice).toContain("Decentralized memory lookup unavailable");
+  });
+
+  it("fails closed honestly when the registry address is invalid", async () => {
+    const result = await loadVerifiedLessonsServerSide({
+      registryAddress: "0xinvalid-address",
+      rpcUrl: "http://localhost:8545",
+    });
+
+    expect(result.lessons).toEqual([]);
+    expect(result.notice).toContain("Decentralized memory lookup unavailable");
+  });
+
+  it("fails closed honestly when no verified on-chain memory pointer exists", async () => {
+    const mockReader = async () => null;
+    const result = await loadVerifiedLessonsServerSide({
+      registryAddress: "0x1111111111111111111111111111111111111111",
+      rpcUrl: "http://localhost:8545",
+      readPointer: mockReader,
+    });
+
+    expect(result.lessons).toEqual([]);
+    expect(result.notice).toContain(
+      "No verified on-chain memory pointer recorded",
+    );
+  });
+
+  it("fails closed when IPFS gateway returns an error or corrupted snapshot", async () => {
+    const mockPointer = {
+      runId: "0x1234" as `0x${string}`,
+      agent: "0x1111111111111111111111111111111111111111" as `0x${string}`,
+      version: 3,
+      score: 100,
+      cidHash: "0x1234" as `0x${string}`,
+      cid: "bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi",
+      exists: true,
+    };
+    const mockReader = async () => mockPointer;
+    const mockFetcher = async () =>
+      new Response("Gateway error", { status: 502 });
+
+    const result = await loadVerifiedLessonsServerSide({
+      registryAddress: "0x1111111111111111111111111111111111111111",
+      rpcUrl: "http://localhost:8545",
+      readPointer: mockReader,
+      fetcher: mockFetcher,
+    });
+
+    expect(result.lessons).toEqual([]);
+    expect(result.notice).toContain("Verified-memory retrieval failed closed");
   });
 });
 

@@ -1,10 +1,20 @@
+import { readLatestVerifiedMemory } from "@autoevolve/chain";
 import {
   createDeterministicCritic,
   createGeminiPolicyGenerator,
-  dataDaoPolicyTask,
   createShowcaseRun,
+  dataDaoPolicyTask,
   runAgentLoop,
+  type InheritedLesson,
 } from "@autoevolve/core";
+import { retrieveVerifiedMemory } from "@autoevolve/memory";
+import {
+  isAddress,
+  keccak256,
+  stringToHex,
+  type Address,
+  type Hex,
+} from "viem";
 import { z } from "zod";
 
 const requestSchema = z
@@ -12,6 +22,83 @@ const requestSchema = z
     mode: z.enum(["showcase", "live"]).default("showcase"),
   })
   .strict();
+
+export interface ServerSideMemoryResolution {
+  lessons: InheritedLesson[];
+  notice?: string;
+  sourceCid?: string;
+}
+
+export async function loadVerifiedLessonsServerSide(options?: {
+  registryAddress?: string;
+  rpcUrl?: string;
+  gateway?: string;
+  taskHash?: Hex;
+  fetcher?: (url: string) => Promise<Response>;
+  readPointer?: (
+    config: { registryAddress: Address; rpcUrl: string },
+    taskHash: Hex,
+  ) => Promise<any>;
+}): Promise<ServerSideMemoryResolution> {
+  const registryAddress =
+    options?.registryAddress ?? process.env.NEXT_PUBLIC_REGISTRY_ADDRESS;
+  const rpcUrl = options?.rpcUrl ?? process.env.BASE_SEPOLIA_RPC_URL;
+
+  if (!registryAddress || !isAddress(registryAddress) || !rpcUrl) {
+    return {
+      lessons: [],
+      notice:
+        "Decentralized memory lookup unavailable: NEXT_PUBLIC_REGISTRY_ADDRESS or BASE_SEPOLIA_RPC_URL not configured.",
+    };
+  }
+
+  const taskHash =
+    options?.taskHash ?? keccak256(stringToHex(dataDaoPolicyTask.id));
+
+  try {
+    const pointerReader = options?.readPointer ?? readLatestVerifiedMemory;
+    const pointer = await pointerReader(
+      { registryAddress: registryAddress as Address, rpcUrl },
+      taskHash,
+    );
+    if (!pointer || !pointer.exists) {
+      return {
+        lessons: [],
+        notice: "No verified on-chain memory pointer recorded for this task.",
+      };
+    }
+
+    const { lessons } = await retrieveVerifiedMemory({
+      pointer,
+      gateway:
+        options?.gateway ??
+        (process.env.PINATA_GATEWAY
+          ? `https://${process.env.PINATA_GATEWAY}`
+          : undefined),
+      fetcher: options?.fetcher,
+    });
+
+    if (!lessons.length) {
+      return {
+        lessons: [],
+        sourceCid: pointer.cid,
+        notice: `Verified snapshot at ${pointer.cid} contained no allowlisted lessons.`,
+      };
+    }
+
+    return {
+      lessons,
+      sourceCid: pointer.cid,
+      notice: `Retrieved ${lessons.length} verified lesson(s) from on-chain CID ${pointer.cid}.`,
+    };
+  } catch (error) {
+    // Fail closed: never propagate corrupt, mismatched, or unverified data into the model loop.
+    return {
+      lessons: [],
+      notice: `Verified-memory retrieval failed closed: ${error instanceof Error ? error.message : String(error)}`,
+    };
+  }
+}
 
 export async function POST(request: Request) {
   let json: unknown;
@@ -55,6 +142,10 @@ export async function POST(request: Request) {
     );
   }
 
+  // Server-side-only safe decentralized memory retrieval.
+  // Browser inputs cannot supply lessons, prompts, or CIDs.
+  const memoryResolution = await loadVerifiedLessonsServerSide();
+
   try {
     const run = await runAgentLoop({
       task: dataDaoPolicyTask,
@@ -63,12 +154,16 @@ export async function POST(request: Request) {
         model: process.env.GEMINI_MODEL ?? "gemini-3.8-flash",
       }),
       critic: createDeterministicCritic(),
-      // Browser-supplied lessons are intentionally never inserted into a model
-      // prompt. Agent Beta integration must use server-side registry → CID →
-      // schema-validation retrieval before supplying InheritedLesson values.
-      inheritedLessons: [],
+      inheritedLessons: memoryResolution.lessons,
     });
-    return Response.json({ mode: "live", run });
+
+    return Response.json({
+      mode: "live",
+      run,
+      ...(memoryResolution.notice
+        ? { memoryNotice: memoryResolution.notice }
+        : {}),
+    });
   } catch (error) {
     return Response.json(
       {
