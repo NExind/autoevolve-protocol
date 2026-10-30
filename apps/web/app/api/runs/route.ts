@@ -14,7 +14,27 @@ const requestSchema = z
   .strict();
 
 export async function POST(request: Request) {
-  const body = requestSchema.parse(await request.json().catch(() => ({})));
+  let json: unknown;
+  try {
+    json = await request.json();
+  } catch {
+    json = {};
+  }
+
+  const parseResult = requestSchema.safeParse(json);
+  if (!parseResult.success) {
+    const details = parseResult.error.issues
+      .map((i) => `${i.path.join(".") || "body"}: ${i.message}`)
+      .join("; ");
+    return Response.json(
+      {
+        error: `Invalid request payload: ${details}. Untrusted browser prompt or memory fields are rejected.`,
+      },
+      { status: 400 },
+    );
+  }
+
+  const body = parseResult.data;
   if (body.mode === "showcase") {
     return Response.json({
       mode: "showcase",
