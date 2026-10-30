@@ -5,6 +5,7 @@ import {
   hashTaskId,
   hashUtf8ToBytes32,
   keccakToLimbs,
+  settlementArtifactToSolidityProof,
   textOrBytes32ToHash,
 } from "./client";
 
@@ -106,5 +107,54 @@ describe("textOrBytes32ToHash and limb helpers", () => {
     const cidLimbs = keccakToLimbs("bafytest");
     expect(cidLimbs.low).toBeGreaterThan(0n);
     expect(cidLimbs.high).toBeGreaterThan(0n);
+  });
+
+  it("converts string settlement artifact to viem Solidity bigints", () => {
+    const artifact = {
+      proof: {
+        a: ["101", "102"] as const,
+        b: [["201", "202"] as const, ["203", "204"] as const] as const,
+        c: ["301", "302"] as const,
+      },
+      publicSignals: [
+        "40",
+        "70",
+        "3",
+        "1",
+        "2",
+        "100",
+        "200",
+        "300",
+        "400",
+        "500",
+        "2",
+        "600",
+        "700",
+      ],
+    };
+    const solidity = settlementArtifactToSolidityProof(artifact);
+    expect(solidity.proof.a).toEqual([101n, 102n]);
+    expect(solidity.proof.b).toEqual([
+      [201n, 202n],
+      [203n, 204n],
+    ]);
+    expect(solidity.proof.c).toEqual([301n, 302n]);
+    expect(solidity.publicSignals).toHaveLength(13);
+    expect(solidity.publicSignals[0]).toBe(40n);
+    expect(solidity.publicSignals[1]).toBe(70n);
+  });
+
+  it("rejects settlement artifact with invalid public signal count", () => {
+    const artifact = {
+      proof: {
+        a: ["1", "2"] as const,
+        b: [["1", "2"] as const, ["3", "4"] as const] as const,
+        c: ["1", "2"] as const,
+      },
+      publicSignals: ["40", "70"],
+    };
+    expect(() => settlementArtifactToSolidityProof(artifact)).toThrow(
+      "Expected exactly 13 Groth16 public signals",
+    );
   });
 });

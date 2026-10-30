@@ -27,6 +27,7 @@ proving key, witness, raw private prompt, or unredacted user data.
 ### Memory
 
 - 2026-10-31: Local sanitized SnapshotCore schema validation observed passing across 29 test vectors; strict redaction of credentials/prompts/chains-of-thought/user data, 512KB payload limits, CID hash binding, and allowlisted MemoryCard extraction enforced. No production Pinata CID or Base Sepolia settlement observed yet.
+- 2026-10-31: Implemented and validated Groth16 settlement artifact parsing (`parseSettlementArtifact`), public signal binding verification (`validateSettlementBinding`), and Base Sepolia settlement receipts verification (`parseSettlementReceipts`) across 34 unit tests. Wired 5-state attestation lifecycle (`unconfigured`, `prepared`, `pinned`, `locally verified`, `on-chain settled`) in `/api/attest`. Validated that without live testnet deployment receipts or live Pinata CID, memory retrieval and attestation truthfully fail-closed to prepared/locally verified and never claim on-chain settlement.
 
 ### Proofs
 

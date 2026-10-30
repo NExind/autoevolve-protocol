@@ -1,8 +1,10 @@
 import { type AgentRun } from "@autoevolve/core";
-import { hashTaskId } from "@autoevolve/chain";
+import { hashTaskId, textOrBytes32ToHash } from "@autoevolve/chain";
 import {
   buildSnapshotCore,
   createGeminiEmbedder,
+  loadLocalSettlementProofs,
+  loadSettlementReceipts,
   pinSnapshotToPinata,
   validateSafeMemoryCards,
   type SnapshotCore,
@@ -74,42 +76,98 @@ export async function POST(request: Request) {
 
   const safeCards = validateSafeMemoryCards(snapshot);
 
-  if (!process.env.PINATA_JWT) {
-    return Response.json({
-      status: "prepared",
-      message:
-        "Snapshot was sanitized and prepared locally. Configure PINATA_JWT to create a real public IPFS CID; no CID, proof, or on-chain settlement is claimed.",
-      snapshotHash: snapshot.integrity.canonicalPayloadHash,
-      cardCount: safeCards.length,
-      safeCards,
-    });
+  let cid: string | undefined;
+  let gatewayUrl: string | undefined;
+  if (process.env.PINATA_JWT) {
+    try {
+      const pin = await pinSnapshotToPinata(snapshot, {
+        jwt: process.env.PINATA_JWT,
+        gateway: process.env.PINATA_GATEWAY,
+      });
+      cid = pin.cid;
+      gatewayUrl = pin.gatewayUrl;
+    } catch (error) {
+      return Response.json(
+        {
+          status: "error",
+          error:
+            error instanceof Error ? error.message : "Pinata upload failed.",
+        },
+        { status: 502 },
+      );
+    }
   }
 
-  try {
-    const pin = await pinSnapshotToPinata(snapshot, {
-      jwt: process.env.PINATA_JWT,
-      gateway: process.env.PINATA_GATEWAY,
-    });
+  const runIdHash = textOrBytes32ToHash(run.runId);
+  const settlementReceipts = await loadSettlementReceipts();
+  if (
+    settlementReceipts &&
+    settlementReceipts.runId.toLowerCase() === runIdHash.toLowerCase() &&
+    settlementReceipts.finalVersion === 3
+  ) {
+    const settledCid = settlementReceipts.cid;
+    const txHash =
+      settlementReceipts.receipts.v2ToV3 ??
+      settlementReceipts.receipts.v1ToV2 ??
+      settlementReceipts.receipts.startRun;
     return Response.json({
-      status: "pinned",
-      cid: pin.cid,
-      gatewayUrl: pin.gatewayUrl,
+      status: "on-chain settled",
+      cid: settledCid,
+      gatewayUrl:
+        gatewayUrl ?? `https://gateway.pinata.cloud/ipfs/${settledCid}`,
       snapshotHash: snapshot.integrity.canonicalPayloadHash,
       cardCount: safeCards.length,
       safeCards: safeCards.map((card) => ({
         ...card,
-        sourceCid: pin.cid,
+        sourceCid: settledCid,
+      })),
+      txHash,
+      registryAddress: settlementReceipts.registry,
+      message: "Run improvement proofs verified and settled on Base Sepolia.",
+    });
+  }
+
+  const localProofs = await loadLocalSettlementProofs({
+    runId: run.runId,
+    ...(cid ? { cid } : {}),
+  });
+  if (localProofs?.v1v2 && localProofs?.v2v3) {
+    return Response.json({
+      status: "locally verified",
+      cid,
+      gatewayUrl,
+      snapshotHash: snapshot.integrity.canonicalPayloadHash,
+      cardCount: safeCards.length,
+      safeCards: cid
+        ? safeCards.map((card) => ({ ...card, sourceCid: cid }))
+        : safeCards,
+      nextStep:
+        "Groth16 proofs verified locally. Settle via Base Sepolia registry to complete on-chain verification.",
+    });
+  }
+
+  if (cid && gatewayUrl) {
+    return Response.json({
+      status: "pinned",
+      cid,
+      gatewayUrl,
+      snapshotHash: snapshot.integrity.canonicalPayloadHash,
+      cardCount: safeCards.length,
+      safeCards: safeCards.map((card) => ({
+        ...card,
+        sourceCid: cid,
       })),
       nextStep:
         "CID is real storage evidence. Generate the Groth16 proof and settle via Base Sepolia registry before marking it verified.",
     });
-  } catch (error) {
-    return Response.json(
-      {
-        status: "error",
-        error: error instanceof Error ? error.message : "Pinata upload failed.",
-      },
-      { status: 502 },
-    );
   }
+
+  return Response.json({
+    status: "prepared",
+    message:
+      "Snapshot was sanitized and prepared locally. Configure PINATA_JWT to create a real public IPFS CID; no CID, proof, or on-chain settlement is claimed.",
+    snapshotHash: snapshot.integrity.canonicalPayloadHash,
+    cardCount: safeCards.length,
+    safeCards,
+  });
 }
