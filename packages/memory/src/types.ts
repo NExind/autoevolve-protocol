@@ -1,4 +1,5 @@
 import type { DataPolicy, FailureCode, PolicyChange } from "@autoevolve/core";
+import type { Address, Hex } from "viem";
 
 export interface MemoryCard {
   id: string;
@@ -54,4 +55,14 @@ export interface PinResult {
 
 export interface Embedder {
   embed(text: string): Promise<number[]>;
+}
+
+export interface VerifiedMemoryPointer {
+  runId: Hex | string;
+  agent: Address | string;
+  version: number;
+  score: number;
+  cidHash: Hex | string;
+  cid: string;
+  exists: boolean;
 }

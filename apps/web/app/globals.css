@@ -1976,3 +1976,208 @@ a {
 .ptsZero {
   color: var(--faint);
 }
+
+/* ==========================================================================
+   Judge Demo Guide Drawer Styles
+   ========================================================================== */
+
+.guideToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(200, 255, 90, 0.5);
+  border-radius: 999px;
+  padding: 5px 12px;
+  background: rgba(200, 255, 90, 0.1);
+  color: var(--acid);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  transition: all 160ms ease;
+}
+
+.guideToggleBtn:hover {
+  transform: translateY(-1px);
+  border-color: var(--acid);
+  background: rgba(200, 255, 90, 0.2);
+}
+
+.guideBolt {
+  font-size: 11px;
+}
+
+.guideOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(4, 10, 8, 0.7);
+  backdrop-filter: blur(6px);
+}
+
+.guideDrawer {
+  display: flex;
+  width: min(580px, 100%);
+  height: 100%;
+  flex-direction: column;
+  overflow-y: auto;
+  border-left: 1px solid var(--line-strong);
+  padding: 28px;
+  background: #091714;
+  box-shadow: -20px 0 60px rgba(0, 0, 0, 0.5);
+}
+
+.guideHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.guideHeader h3 {
+  margin: 4px 0 0;
+  color: var(--ink);
+  font-size: 18px;
+}
+
+.guideCloseBtn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.guideCloseBtn:hover {
+  border-color: var(--acid);
+  color: var(--ink);
+}
+
+.guideIntro {
+  margin: 12px 0 18px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.guideStepNav {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.guideStepTab {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 7px 8px;
+  background: rgba(14, 34, 28, 0.5);
+  color: var(--muted);
+  text-align: left;
+  transition: all 140ms ease;
+}
+
+.guideStepTab.active {
+  border-color: var(--mint);
+  background: rgba(112, 230, 176, 0.12);
+  color: var(--ink);
+}
+
+.guideStepTab .stepTime {
+  color: var(--acid);
+  font-family: var(--mono);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.guideStepTab .stepTitle {
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.guideStepContent {
+  flex: 1;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 20px;
+  background: rgba(6, 19, 15, 0.85);
+}
+
+.stepMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stepBadge {
+  border-radius: 4px;
+  padding: 3px 6px;
+  background: rgba(200, 255, 90, 0.15);
+  color: var(--acid);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.stepMeta h4 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.stepSubtitle {
+  margin: 6px 0 16px;
+  color: var(--cyan);
+  font-size: 12px;
+}
+
+.stepScriptBox {
+  margin-bottom: 20px;
+  border-left: 2px solid var(--mint);
+  padding: 12px 14px;
+  background: rgba(112, 230, 176, 0.05);
+}
+
+.scriptLabel {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--mint);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.scriptText {
+  margin: 0;
+  color: #cce0d5;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.55;
+}
+
+.stepActionBtn {
+  width: 100%;
+}
+
+.guideFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+  padding-top: 14px;
+}
+
+.stepCounter {
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 10px;
+}

@@ -9,7 +9,9 @@ import {
 import { CID } from "multiformats/cid";
 import { keccak256, stringToHex, type Hex } from "viem";
 import { z } from "zod";
-import type { MemoryCard, SnapshotCore } from "./types";
+import type { MemoryCard, SnapshotCore, VerifiedMemoryPointer } from "./types";
+
+export const MAX_SNAPSHOT_BYTES = 512 * 1024; // 512 KB
 
 const failureCodeValues = [
   "MISSING_CONSENT_GATE",
@@ -42,10 +44,10 @@ const hex32 = /^0x[a-fA-F0-9]{64}$/;
 // `systemPromptStored` is an intentional boolean attestation that no prompt was
 // published. Any actual prompt field remains prohibited.
 const unsafeFieldPattern =
-  /(api[_-]?key|authorization|private[_-]?key|secret|chain[_-]?of[_-]?thought)/i;
+  /(api[_-]?key|authorization|bearer|token|credentials|private[_-]?key|wallet[_-]?(private[_-]?)?key|secret[_-]?key|secret|mnemonic|chain[_-]?of[_-]?thought|raw[_-]?(cot|thought)|(raw[_-]?)?user([_-]?data)?|raw[_-]?prompt)/i;
 const systemPromptPattern = /system[_-]?prompt/i;
 const unsafeContentPattern =
-  /(api[_ -]?key|authorization|private[_ -]?key|secret|system[_ -]?prompt|chain[_ -]?of[_ -]?thought)/i;
+  /(api[_ -]?key|authorization|bearer\s+[a-z0-9_\-\.]|sk-[a-zA-Z0-9_\-]{15,}|private[_ -]?key|wallet[_ -]?key|secret|system[_ -]?prompt|chain[_ -]?of[_ -]?thought|raw[_ -]?(cot|thought)|raw[_ -]?user)/i;
 
 export function isUnsafeFieldKey(key: string): boolean {
   return (
@@ -62,6 +64,13 @@ export function assertNoUnsafeFields(value: unknown, path = "snapshot"): void {
     return;
   }
   if (!value || typeof value !== "object") {
+    if (typeof value === "string") {
+      if (
+        /^(sk-[a-zA-Z0-9_\-]{20,}|bearer\s+[a-z0-9_\-\.]{20,})/i.test(value)
+      ) {
+        throw new Error(`Unsafe secret content rejected at ${path}.`);
+      }
+    }
     return;
   }
   for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
@@ -82,7 +91,7 @@ const policyChangeSchema = z
   })
   .strict();
 
-const memoryCardSchema = z
+export const memoryCardSchema = z
   .object({
     id: z.string().min(1).max(180),
     failureCode: z.enum(failureCodeValues),
@@ -153,6 +162,28 @@ export const snapshotCoreSchema = z
               path: [index, "id"],
             });
           }
+        }
+        if (
+          versions[0] &&
+          versions[1] &&
+          versions[1].score <= versions[0].score
+        ) {
+          context.addIssue({
+            code: "custom",
+            message: "V2 score must strictly improve over V1 score.",
+            path: [1, "score"],
+          });
+        }
+        if (
+          versions[1] &&
+          versions[2] &&
+          versions[2].score <= versions[1].score
+        ) {
+          context.addIssue({
+            code: "custom",
+            message: "V3 score must strictly improve over V2 score.",
+            path: [2, "score"],
+          });
         }
       }),
     transitions: z
@@ -241,9 +272,86 @@ export function assertCidMatchesHash(cid: string, expectedHash: Hex): void {
   }
 }
 
+/**
+ * Asserts that a registry memory pointer matches the fetched snapshot's metadata.
+ * Validates existence, CID hash binding, runId binding, stage/version, score, and agent wallet.
+ */
+export function assertRegistryPointerMatchesSnapshot(
+  pointer: VerifiedMemoryPointer,
+  snapshot: SnapshotCore,
+): void {
+  if (!pointer.exists) {
+    throw new Error("Registry memory pointer does not exist.");
+  }
+  assertCid(pointer.cid);
+  assertCidMatchesHash(pointer.cid, pointer.cidHash as Hex);
+
+  const snapshotRunIdHash = hex32.test(snapshot.runId)
+    ? (snapshot.runId.toLowerCase() as Hex)
+    : keccak256(stringToHex(snapshot.runId));
+  if (pointer.runId.toLowerCase() !== snapshotRunIdHash.toLowerCase()) {
+    throw new Error(
+      `Registry pointer runId mismatch: pointer has ${pointer.runId}, but snapshot has ${snapshotRunIdHash} (from "${snapshot.runId}").`,
+    );
+  }
+
+  const expectedVersionId = `V${pointer.version}` as "V1" | "V2" | "V3";
+  const matchingVersion = snapshot.versions.find(
+    (version) => version.id === expectedVersionId,
+  );
+  if (!matchingVersion) {
+    throw new Error(
+      `Registry pointer version mismatch: snapshot contains no version ${expectedVersionId}.`,
+    );
+  }
+
+  if (matchingVersion.score !== pointer.score) {
+    throw new Error(
+      `Registry pointer score mismatch: pointer recorded score ${pointer.score}, but snapshot version ${expectedVersionId} has score ${matchingVersion.score}.`,
+    );
+  }
+
+  if (snapshot.agent.wallet) {
+    if (snapshot.agent.wallet.toLowerCase() !== pointer.agent.toLowerCase()) {
+      throw new Error(
+        `Registry pointer agent mismatch: pointer recorded agent ${pointer.agent}, but snapshot has wallet ${snapshot.agent.wallet}.`,
+      );
+    }
+  }
+}
+
 export function parseSnapshotCore(value: unknown): SnapshotCore {
-  assertNoUnsafeFields(value);
-  const parsed = snapshotCoreSchema.parse(value);
+  let target = value;
+  if (typeof value === "string") {
+    const rawBytes = new TextEncoder().encode(value).length;
+    if (rawBytes > MAX_SNAPSHOT_BYTES) {
+      throw new Error(
+        `Snapshot payload is oversized (${rawBytes} bytes exceeds ${MAX_SNAPSHOT_BYTES} bytes limit).`,
+      );
+    }
+    try {
+      target = JSON.parse(value);
+    } catch {
+      throw new Error("Malformed snapshot: input is not valid JSON.");
+    }
+  }
+  if (!target || typeof target !== "object" || Array.isArray(target)) {
+    throw new Error("Expected snapshot to be a non-null object.");
+  }
+  let serialized: string;
+  try {
+    serialized = JSON.stringify(target);
+  } catch {
+    throw new Error("Malformed snapshot: object cannot be serialized to JSON.");
+  }
+  const byteLength = new TextEncoder().encode(serialized).length;
+  if (byteLength > MAX_SNAPSHOT_BYTES) {
+    throw new Error(
+      `Snapshot payload is oversized (${byteLength} bytes exceeds ${MAX_SNAPSHOT_BYTES} bytes limit).`,
+    );
+  }
+  assertNoUnsafeFields(target);
+  const parsed = snapshotCoreSchema.parse(target);
   return asSnapshotCore(parsed);
 }
 

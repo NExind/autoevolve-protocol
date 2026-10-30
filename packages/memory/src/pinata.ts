@@ -48,5 +48,6 @@ export async function fetchPublicSnapshot(
   if (!response.ok) {
     throw new Error(`IPFS gateway responded ${response.status}.`);
   }
-  return verifySnapshotIntegrity(parseSnapshotCore(await response.json()));
+  const text = await response.text();
+  return verifySnapshotIntegrity(parseSnapshotCore(text));
 }
