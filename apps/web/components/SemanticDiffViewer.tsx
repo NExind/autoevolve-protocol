@@ -38,7 +38,14 @@ export function SemanticDiffViewer({
   previous,
 }: SemanticDiffViewerProps) {
   const [showAllFields, setShowAllFields] = useState(false);
+  const [copied, setCopied] = useState(false);
   const changes = version.changesFromPrevious;
+
+  function handleCopy() {
+    navigator.clipboard.writeText(JSON.stringify(version.policy, null, 2));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   return (
     <section
@@ -52,13 +59,23 @@ export function SemanticDiffViewer({
             {previous ? `${previous.id} → ${version.id}` : "V1 Baseline Policy"}
           </h3>
         </div>
-        <button
-          type="button"
-          className="fieldToggleBtn"
-          onClick={() => setShowAllFields(!showAllFields)}
-        >
-          {showAllFields ? "Show Changes Only" : "Inspect All 10 Fields"}
-        </button>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <button
+            type="button"
+            className="fieldToggleBtn copyPolicyBtn"
+            onClick={handleCopy}
+            title="Copy sanitized DataPolicy JSON to clipboard"
+          >
+            {copied ? "✓ Copied JSON" : "📋 Copy JSON"}
+          </button>
+          <button
+            type="button"
+            className="fieldToggleBtn"
+            onClick={() => setShowAllFields(!showAllFields)}
+          >
+            {showAllFields ? "Show Changes Only" : "Inspect All 10 Fields"}
+          </button>
+        </div>
       </div>
 
       {!showAllFields ? (
