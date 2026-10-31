@@ -49,7 +49,9 @@ export function MemoryEmbeddingBadge({
       </svg>
       Semantic Ranking Active
       {cardCount !== undefined && (
-        <span style={{ opacity: 0.75, marginLeft: 4 }}>({cardCount} cards)</span>
+        <span style={{ opacity: 0.75, marginLeft: 4 }}>
+          ({cardCount} cards)
+        </span>
       )}
     </span>
   );

@@ -102,7 +102,9 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
       } else if (mode === "showcase") {
         setMemoryNotice(null);
       }
-      setProvider(mode === "showcase" ? "showcase" : (data.provider ?? "gemini"));
+      setProvider(
+        mode === "showcase" ? "showcase" : (data.provider ?? "gemini"),
+      );
       setAttestation({ status: "idle" });
     } catch (error) {
       setNoticeTone("error");
@@ -343,7 +345,7 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
             <p className="sectionKicker">EXECUTION TRACE</p>
             <h2>{run.task.title}</h2>
           </div>
-            <div className="runIdentity">
+          <div className="runIdentity">
             <span>RUN ID:</span>
             <code>{truncate(run.runId)}</code>
             <ProviderBadge provider={provider} />
