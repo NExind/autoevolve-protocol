@@ -53,6 +53,36 @@ export async function rankMemoryCards(
   );
 }
 
+/**
+ * Query-time semantic ranking: embeds the query AND each card's safePatchStrategy
+ * on the fly, so semantic ranking works even when cards have no stored embedding.
+ * Falls back gracefully to alphabetical order if the embedder call fails.
+ */
+export async function rankMemoryCardsByText(
+  query: string,
+  cards: MemoryCard[],
+  embedder: Embedder,
+): Promise<MemoryCard[]> {
+  try {
+    const queryVec = await embedder.embed(query);
+    const pairs = await Promise.all(
+      cards.map(async (card) => {
+        const cardVec =
+          card.embedding && card.embedding.length > 0
+            ? card.embedding
+            : await embedder.embed(card.safePatchStrategy);
+        return { card, score: cosineSimilarity(queryVec, cardVec) };
+      }),
+    );
+    return pairs.sort((a, b) => b.score - a.score).map((p) => p.card);
+  } catch {
+    // Fail open: return alphabetical order rather than crashing the search route.
+    return [...cards].sort((a, b) =>
+      a.failureCode.localeCompare(b.failureCode),
+    );
+  }
+}
+
 export function allowlistedCardsToInheritedLessons(
   cards: MemoryCard[],
 ): InheritedLesson[] {

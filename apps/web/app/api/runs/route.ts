@@ -1,6 +1,8 @@
 import { readLatestVerifiedMemory } from "@autoevolve/chain";
 import {
   createDeterministicCritic,
+  createFeatherlessCritic,
+  createFeatherlessPolicyGenerator,
   createGeminiPolicyGenerator,
   createShowcaseRun,
   dataDaoPolicyTask,
@@ -131,12 +133,14 @@ export async function POST(request: Request) {
     });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
+  const featherlessKey = process.env.FEATHERLESS_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY;
+
+  if (!featherlessKey && !geminiKey) {
     return Response.json(
       {
         error:
-          "Live mode requires GEMINI_API_KEY. The dashboard will not substitute a replay for a live model run.",
+          "Live mode requires GEMINI_API_KEY or FEATHERLESS_API_KEY. The dashboard will not substitute a replay for a live model run.",
       },
       { status: 503 },
     );
@@ -146,20 +150,39 @@ export async function POST(request: Request) {
   // Browser inputs cannot supply lessons, prompts, or CIDs.
   const memoryResolution = await loadVerifiedLessonsServerSide();
 
+  // Select provider: Featherless (adversarial LLM critic) takes priority when key is present.
+  const generator = featherlessKey
+    ? createFeatherlessPolicyGenerator({
+        apiKey: featherlessKey,
+        model:
+          process.env.FEATHERLESS_GENERATOR_MODEL ??
+          "Qwen/Qwen2.5-Coder-32B-Instruct",
+      })
+    : createGeminiPolicyGenerator({
+        apiKey: geminiKey!,
+        model: process.env.GEMINI_MODEL ?? "gemini-2.0-flash",
+      });
+
+  const critic =
+    featherlessKey && process.env.FEATHERLESS_CRITIC_MODEL
+      ? createFeatherlessCritic({
+          apiKey: featherlessKey,
+          model: process.env.FEATHERLESS_CRITIC_MODEL,
+        })
+      : createDeterministicCritic();
+
   try {
     const run = await runAgentLoop({
       task: dataDaoPolicyTask,
-      generator: createGeminiPolicyGenerator({
-        apiKey,
-        model: process.env.GEMINI_MODEL ?? "gemini-3.8-flash",
-      }),
-      critic: createDeterministicCritic(),
+      generator,
+      critic,
       inheritedLessons: memoryResolution.lessons,
     });
 
     return Response.json({
       mode: "live",
       run,
+      provider: featherlessKey ? "featherless" : "gemini",
       ...(memoryResolution.notice
         ? { memoryNotice: memoryResolution.notice }
         : {}),

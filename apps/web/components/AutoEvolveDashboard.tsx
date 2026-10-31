@@ -15,6 +15,7 @@ import { AgentBetaMemoryView } from "./AgentBetaMemoryView";
 import { HistoricalShowcaseEvidence } from "./HistoricalShowcaseEvidence";
 import { JudgeDemoGuide } from "./JudgeDemoGuide";
 import { PublicSignalsModal } from "./PublicSignalsModal";
+import { ProviderBadge, type LLMProvider } from "./ProviderBadge";
 
 function truncate(value: string, left = 9, right = 7): string {
   if (value.length <= left + right + 3) return value;
@@ -30,6 +31,7 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
     "info",
   );
   const [memoryNotice, setMemoryNotice] = useState<string | null>(null);
+  const [provider, setProvider] = useState<LLMProvider>("showcase");
   const [showAbiModal, setShowAbiModal] = useState(false);
   const [attestation, setAttestation] = useState<AttestationState>({
     status: "idle",
@@ -78,6 +80,7 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
         error?: string;
         warning?: string;
         memoryNotice?: string;
+        provider?: LLMProvider;
       };
 
       if (!response.ok || !data.run) {
@@ -99,6 +102,7 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
       } else if (mode === "showcase") {
         setMemoryNotice(null);
       }
+      setProvider(mode === "showcase" ? "showcase" : (data.provider ?? "gemini"));
       setAttestation({ status: "idle" });
     } catch (error) {
       setNoticeTone("error");
@@ -339,9 +343,10 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
             <p className="sectionKicker">EXECUTION TRACE</p>
             <h2>{run.task.title}</h2>
           </div>
-          <div className="runIdentity">
+            <div className="runIdentity">
             <span>RUN ID:</span>
             <code>{truncate(run.runId)}</code>
+            <ProviderBadge provider={provider} />
           </div>
         </div>
 
