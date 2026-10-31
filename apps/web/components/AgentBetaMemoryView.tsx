@@ -166,6 +166,18 @@ export function AgentBetaMemoryView({
                     : "✕ QUERY ERROR"}
             </span>
             {registryMessage && <p>{registryMessage}</p>}
+            {registryStatus === "unconfigured" && (
+              <div className="unconfiguredNoticeActions">
+                <a
+                  href="https://sepolia.basescan.org/address/0x24473c0043b13d56874d10de9675728e2014a66c"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="button buttonSecondary contractInspectBtn"
+                >
+                  Inspect Historical Base Sepolia Contract (0x2447…a66c) ↗
+                </a>
+              </div>
+            )}
             {activePointer && (
               <div className="pointerDetails">
                 <span>

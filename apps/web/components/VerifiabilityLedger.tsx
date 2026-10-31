@@ -67,6 +67,37 @@ export function VerifiabilityLedger({
     lifecycleClass = "statePrepared";
   }
 
+  function downloadSnapshotJson() {
+    const payload = {
+      schemaVersion: "autoevolve-memory/v1",
+      runId: run.runId,
+      task: run.task,
+      userPrompt: run.userPrompt,
+      canonicalPayloadHash: snapshotHash ?? "unhashed",
+      versions: run.versions.map((v) => ({
+        version: v.id,
+        score: v.evaluation.score,
+        policy: v.policy,
+        solutionDocument: v.solutionDocument,
+        source: v.source,
+      })),
+      critiques: run.critiques,
+      evidenceLifecycle: attestation.status,
+      timestamp: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `autoevolve-sanitized-memory-${run.runId}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <aside
       className="panel ledgerPanel"
@@ -92,7 +123,10 @@ export function VerifiabilityLedger({
           <div className="ledgerContent">
             <strong>1. Deterministic Evaluator</strong>
             <small>
-              Scores derived from 10 fixed rubric checks (40 → 70 → 100)
+              Scores derived from 10 fixed rubric checks (
+              {run.versions.map((v) => v.evaluation.score).join(" → ") ||
+                "40 → 70 → 100"}
+              )
             </small>
           </div>
           <span className="ledgerState stateSuccess">READY</span>
@@ -198,6 +232,19 @@ export function VerifiabilityLedger({
             ? "Preparing sanitized snapshot…"
             : "Prepare Sanitized Memory Snapshot"}
         </button>
+
+        {attestation.status !== "idle" &&
+          attestation.status !== "working" &&
+          attestation.status !== "error" && (
+            <button
+              type="button"
+              className="button buttonSecondary downloadSnapshotBtn"
+              onClick={downloadSnapshotJson}
+              title="Download the sanitized SnapshotCore JSON file to your computer"
+            >
+              💾 Download Snapshot JSON
+            </button>
+          )}
       </div>
 
       {attestation.status !== "idle" && attestation.status !== "working" && (

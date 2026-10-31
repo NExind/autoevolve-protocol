@@ -3,6 +3,7 @@ import {
   createDeterministicCritic,
   createFeatherlessCritic,
   createFeatherlessPolicyGenerator,
+  createGeminiCritic,
   createGeminiPolicyGenerator,
   createShowcaseRun,
   dataDaoPolicyTask,
@@ -209,7 +210,17 @@ export async function POST(request: Request) {
           apiKey: featherlessKey,
           model: process.env.FEATHERLESS_CRITIC_MODEL,
         })
-      : createDeterministicCritic();
+      : geminiKey
+        ? createGeminiCritic({
+            apiKey: geminiKey,
+            model: process.env.GEMINI_MODEL ?? "gemini-2.0-flash",
+          })
+        : featherlessKey
+          ? createFeatherlessCritic({
+              apiKey: featherlessKey,
+              model: "Qwen/Qwen2.5-Coder-32B-Instruct",
+            })
+          : createDeterministicCritic();
 
   try {
     const run = await runAgentLoop({

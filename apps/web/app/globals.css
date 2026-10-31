@@ -3233,3 +3233,178 @@ a {
   background: transparent;
   padding: 0;
 }
+
+/* ── Markdown Document Reader View ────────────────────────────── */
+
+.documentReaderContainer {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(8, 26, 21, 0.9);
+  overflow: hidden;
+}
+
+.documentReaderHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: rgba(12, 34, 27, 0.85);
+  border-bottom: 1px solid var(--line);
+}
+
+.docHeaderMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.docVersionBadge {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--acid);
+  background: rgba(200, 255, 90, 0.12);
+  border: 1px solid rgba(200, 255, 90, 0.3);
+  border-radius: 4px;
+  padding: 3px 8px;
+}
+
+.docTitleLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.docScorePill {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--mint);
+  background: rgba(112, 230, 176, 0.12);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.markdownDocumentView {
+  padding: 22px 26px;
+  max-height: 480px;
+  overflow-y: auto;
+  font-size: 13px;
+  line-height: 1.65;
+  color: #d6e8dc;
+}
+
+.mdH1 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.mdH2 {
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--mint);
+  margin: 18px 0 8px;
+}
+
+.mdH3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e4f4ea;
+  margin: 14px 0 6px;
+}
+
+.mdP {
+  margin: 0 0 10px;
+  color: #c0d8c8;
+}
+
+.mdLi {
+  margin-left: 18px;
+  margin-bottom: 6px;
+  list-style-type: disc;
+  color: #d6e8dc;
+}
+
+.mdNumberedLi {
+  margin-left: 18px;
+  margin-bottom: 6px;
+  list-style-type: decimal;
+  color: #d6e8dc;
+}
+
+.mdBlockquote {
+  margin: 12px 0;
+  padding: 8px 14px;
+  background: rgba(200, 255, 90, 0.05);
+  border-left: 3px solid var(--acid);
+  border-radius: 0 6px 6px 0;
+  color: #e2f0d9;
+  font-style: italic;
+}
+
+.mdSpacing {
+  height: 8px;
+}
+
+.mdStrong {
+  color: #fff;
+  font-weight: 600;
+}
+
+.mdCode {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.07);
+  padding: 2px 5px;
+  border-radius: 4px;
+  color: var(--mint);
+}
+
+/* ── Download Snapshot Button & Actions ───────────────────────── */
+
+.downloadSnapshotBtn {
+  margin-top: 8px;
+  width: 100%;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--acid);
+  border-color: rgba(200, 255, 90, 0.35);
+  background: rgba(200, 255, 90, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.downloadSnapshotBtn:hover {
+  background: rgba(200, 255, 90, 0.16);
+  border-color: var(--acid);
+  color: #fff;
+}
+
+.unconfiguredNoticeActions {
+  margin-top: 10px;
+}
+
+.contractInspectBtn {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  color: var(--mint);
+  border: 1px solid rgba(112, 230, 176, 0.35);
+  background: rgba(112, 230, 176, 0.08);
+  transition: all 0.15s ease;
+}
+
+.contractInspectBtn:hover {
+  background: rgba(112, 230, 176, 0.18);
+  border-color: var(--mint);
+  color: #fff;
+}
