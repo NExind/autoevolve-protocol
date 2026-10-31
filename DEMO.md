@@ -28,32 +28,30 @@ The presenter must adhere to the non-negotiable honesty boundary: use only state
 
 **Presenter Script:**
 
-> _"Our agent is given a real DataDAO health data-sharing policy to repair. Let's inspect each stage of evolution."_
+> _"Our agent is given an objective—such as designing a cybersecurity roadmap or health research sharing policy. In parallel, it formulates the strict 10-field arithmetic policy for Circom ZK proof generation and a rich, multi-phase Markdown document. Let's inspect each stage of evolution."_
 
 **Dashboard Actions:**
 
-1. Click **Run showcase replay** (or inspect current initial trace):
+1. Click **Run showcase replay** (or enter a custom scenario prompt and click **Run live evolution**):
    - Note the instant execution with zero external secrets required.
 2. Select **V1** on the execution graph:
-   - Show score: **40/100**.
-   - Point to the **Deterministic Evaluation** panel: 6 failed checks (`redactDirectIdentifiers`, `blockRestrictedRegions`, `minKAnonymity`, `requireDualApprovalHighVolume`, `maxExportRows`, `retentionDays`).
-   - Point to the **Independent Rubric Critique**: explains the identified risks and lists targeted repair strategies.
-3. Click **View Guardrail & Agent Events**:
+   - Show score: **40/100** (or live candidate baseline).
+   - Point to the **Deterministic Evaluation** panel: failed checks displayed with instant visual indicators.
+   - Point to the **Independent Rubric Critique**: explains domain risks and lists targeted repair strategies.
+3. Switch across the **5-Mode Output Inspector**:
+   - **📄 Written Solution**: Highlight the rich, multi-phase Markdown document directly answering the objective. Click **"📋 Copy Document"** to demonstrate one-click clipboard extraction.
+   - **📊 3-Version Matrix**: Compare all 10 policy fields across V1, V2, and V3 side-by-side against passing thresholds.
+   - **🔍 Single Output**: Deeply inspect any active version's controls and rationale.
+   - **🔀 Semantic Diff**: Show exact field-level changes between revisions (`redactDirectIdentifiers: false → true`).
+   - **📋 Raw JSON**: View the full machine-readable manifest with one-click copy.
+4. Click **View Guardrail & Agent Events**:
    - Expand the chronological event stream showing `[GENERATED]`, `[EVALUATED]`, `[CRITIQUED]`, `[REVISED]`, and `[GUARDRAIL]` events.
-4. Select **V2**:
+5. Select **V2**:
    - Show score leap: **+30 points → 70/100**.
-   - Show the **Semantic Policy Diff**: directly shows field-level changes:
-     - `redactDirectIdentifiers: false → true`
-     - `blockRestrictedRegions: false → true`
-     - `minKAnonymity: 2 → 5`
-   - Point to the remaining 3 failed checks in the evaluator checklist.
-5. Select **V3**:
-   - Show final score: **100/100** (+30 points).
-   - Show semantic diffs resolving the remaining controls:
-     - `requireDualApprovalHighVolume: false → true`
-     - `maxExportRows: 12,000 → 10,000`
-     - `retentionDays: 60 → 30`
-   - All 10 rubric checks pass! Click **Inspect All 10 Fields** to show the complete policy state.
+   - Show the guarded revision incorporating the adversarial critic's repair plan.
+6. Select **V3**:
+   - Show final score: **100/100**.
+   - All 10 rubric checks pass! Complete production-ready architecture achieved.
 
 ---
 
@@ -122,7 +120,9 @@ The presenter must adhere to the non-negotiable honesty boundary: use only state
 3. Inspect the **Memory Cards**:
    - Each card contains only typed `failureCode` (e.g., `PII_EXPOSURE`, `K_ANONYMITY_TOO_LOW`) and structured `safePatchStrategy`.
    - Emphasize to judges: _Raw prompts and unvalidated IPFS text are never passed to Agent Beta; only schema-validated, allowlisted fields are used._
-4. If available from the live Gemini run:
+   - Point out the **"💾 Download Snapshot JSON"** button in the Verifiability Ledger, allowing offline judges to export the sanitized canonical `SnapshotCore` payload locally.
+   - Point out the **"Inspect Historical Base Sepolia Contract ↗"** direct link in the unconfigured state to view the verified smart contract on BaseScan Sepolia.
+4. If available from a live run:
    - Point to the **Agent Beta Lesson Inheritance Event** banner:
      _"Retrieved 9 verified lesson(s) from on-chain CID bafkreieh2vkmptacucurtcu7wrsepinjsmjh4dcbktk6y633ufd25z5ajm."_
    - Clarify that Agent Beta started from score 60 and reached 100 by applying these verified lessons.
