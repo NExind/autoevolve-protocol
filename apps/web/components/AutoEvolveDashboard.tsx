@@ -410,6 +410,9 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
             version={selected}
             previous={previous}
             taskTitle={run.task.title}
+            versions={run.versions}
+            selectedId={selectedId}
+            onSelectVersion={setSelectedId}
           />
           <VerifiabilityLedger
             run={run}

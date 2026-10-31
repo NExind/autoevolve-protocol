@@ -2761,3 +2761,475 @@ a {
   line-height: 1.45;
   max-width: 800px;
 }
+
+/* ── Multi-Version Output Inspector ─────────────────────────── */
+
+.viewModeSwitcher {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(8, 26, 21, 0.95);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.viewModeBtn {
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.viewModeBtn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.viewModeBtn.viewModeActive {
+  background: rgba(112, 230, 176, 0.15);
+  color: var(--mint);
+  border: 1px solid rgba(112, 230, 176, 0.3);
+  font-weight: 600;
+}
+
+.outputSubToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  background: rgba(12, 34, 27, 0.6);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.versionPillsGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pillsLabel {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--faint);
+  letter-spacing: 0.06em;
+}
+
+.versionPillBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(8, 26, 21, 0.8);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 10px;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 11px;
+  transition: all 0.15s ease;
+}
+
+.versionPillBtn:hover {
+  border-color: var(--faint);
+  color: #fff;
+}
+
+.versionPillBtn.versionPillActive {
+  border-color: var(--acid);
+  background: rgba(200, 255, 90, 0.1);
+  color: #fff;
+}
+
+.pillId {
+  font-weight: 700;
+}
+
+.pillScore {
+  font-size: 10px;
+  color: var(--mint);
+  background: rgba(112, 230, 176, 0.12);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.toolbarActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jsonTabGroup {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.jsonSubTab {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.jsonSubTab:hover {
+  color: #fff;
+}
+
+.jsonSubTab.active {
+  background: rgba(112, 230, 176, 0.15);
+  border-color: var(--mint);
+  color: var(--mint);
+  font-weight: 600;
+}
+
+/* ── Matrix Table View ────────────────────────────────────────── */
+
+.matrixTableContainer {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(8, 26, 21, 0.7);
+}
+
+.matrixTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+
+.matrixTable th,
+.matrixTable td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+.matrixHeaderControl {
+  width: 38%;
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.matrixHeaderCol {
+  width: 20%;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.matrixHeaderCol:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.matrixHeaderCol.colActive {
+  background: rgba(200, 255, 90, 0.04);
+}
+
+.colHeaderBox {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.colVersionTag {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.05em;
+}
+
+.colScoreBadge {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.matrixRow:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.matrixControlCell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.matrixControlCell strong {
+  color: #d8e8de;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.matrixRuleTarget {
+  font-size: 10px;
+  color: var(--amber);
+  font-family: var(--mono);
+}
+
+.matrixKey {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--faint);
+}
+
+.matrixDataCell {
+  font-family: var(--mono);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.matrixIcon {
+  display: inline-block;
+  margin-right: 6px;
+  font-weight: bold;
+}
+
+.cellPass {
+  color: var(--mint);
+}
+
+.cellPass .matrixIcon {
+  color: var(--mint);
+}
+
+.cellFail {
+  color: var(--rose);
+}
+
+.cellFail .matrixIcon {
+  color: var(--rose);
+}
+
+.matrixHelpNote {
+  margin: 10px 14px;
+  font-size: 11px;
+  color: var(--faint);
+  font-style: italic;
+}
+
+/* ── Single Version Deep Dive View ────────────────────────────── */
+
+.singleOutputContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.singleVersionSummaryBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: rgba(12, 36, 29, 0.8);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.summaryBannerLeft {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.versionBannerBadge {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--acid);
+  padding: 6px 12px;
+  background: rgba(200, 255, 90, 0.1);
+  border: 1px solid rgba(200, 255, 90, 0.3);
+  border-radius: 6px;
+}
+
+.summaryBannerLeft h4 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 650;
+  color: #fff;
+}
+
+.summaryBannerMeta {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.summaryBannerMeta code {
+  color: var(--mint);
+}
+
+.summaryBannerScore {
+  text-align: right;
+}
+
+.scoreLabel {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--faint);
+  letter-spacing: 0.08em;
+}
+
+.scoreNumber {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--mint);
+}
+
+.singleFieldsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.singleFieldCard {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px;
+  background: rgba(8, 26, 21, 0.85);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  transition: border-color 0.15s ease;
+}
+
+.fieldCardPass {
+  border-left: 3px solid var(--mint);
+}
+
+.fieldCardFail {
+  border-left: 3px solid var(--rose);
+}
+
+.fieldCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.fieldCardTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #d8e8de;
+}
+
+.fieldStatusBadge {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.badgePass {
+  background: rgba(112, 230, 176, 0.15);
+  color: var(--mint);
+}
+
+.badgeFail {
+  background: rgba(255, 139, 148, 0.15);
+  color: var(--rose);
+}
+
+.fieldCardBody {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.fieldCardValue {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.fieldCardTarget {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--amber);
+}
+
+.fieldCardKey {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--faint);
+}
+
+/* ── Raw JSON Viewer View ─────────────────────────────────────── */
+
+.rawJsonViewerContainer {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(6, 18, 15, 0.95);
+  overflow: hidden;
+}
+
+.jsonViewerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(12, 34, 27, 0.8);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.jsonHeaderLabel {
+  color: #c4ded0;
+  font-weight: 600;
+}
+
+.jsonBytesCount {
+  color: var(--faint);
+}
+
+.jsonCodeBlock {
+  margin: 0;
+  padding: 14px 18px;
+  max-height: 420px;
+  overflow: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.55;
+  color: #a8d5be;
+  tab-size: 2;
+}
+
+.jsonCodeBlock code {
+  color: inherit;
+  background: transparent;
+  padding: 0;
+}
