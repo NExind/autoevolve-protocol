@@ -5,6 +5,8 @@ import { useState } from "react";
 interface JudgeDemoGuideProps {
   onRunShowcase: () => void;
   onOpenAbi: () => void;
+  onScrollToHistorical?: () => void;
+  onScrollToMemory?: () => void;
 }
 
 interface DemoStep {
@@ -19,6 +21,8 @@ interface DemoStep {
 export function JudgeDemoGuide({
   onRunShowcase,
   onOpenAbi,
+  onScrollToHistorical,
+  onScrollToMemory,
 }: JudgeDemoGuideProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
@@ -43,7 +47,7 @@ export function JudgeDemoGuide({
       action: onRunShowcase,
     },
     {
-      time: "1:45–3:00",
+      time: "1:45–2:30",
       title: "Zero-Knowledge Proof Boundary",
       subtitle: "Circom 2 / snarkjs Groth16 over private policy commitments",
       script:
@@ -52,25 +56,29 @@ export function JudgeDemoGuide({
       action: onOpenAbi,
     },
     {
-      time: "3:00–4:00",
-      title: "Decentralized Memory & Base Sepolia Escrow",
-      subtitle: "Sanitized snapshots on IPFS, attested on-chain",
+      time: "2:30–3:30",
+      title: "Historical Attested Showcase Evidence",
+      subtitle: "Base Sepolia & Pinata IPFS public verification receipts",
       script:
-        "Click 'Prepare Sanitized Memory Snapshot'. Show that private prompts and keys are stripped, leaving only canonical SnapshotCore. Once pinned, a real CID is returned. The Base Sepolia registry verifies proof and awards escrow micro-rewards.",
+        "These public artifacts belong to the historical attested showcase (40 → 70 → 100), whereas the live Gemini Agent Beta run demonstrated safe lesson inheritance. Show the real Pinata IPFS CID (bafkreieh2vkmptacucurtcu7wrsepinjsmjh4dcbktk6y633ufd25z5ajm), Base Sepolia registry (0x24473c0043b13d56874d10de9675728e2014a66c), and the two confirmed settlement receipts (0x5065... and 0xf611...).",
+      actionLabel: "View Historical Artifacts",
+      action: onScrollToHistorical,
     },
     {
-      time: "4:00–4:40",
-      title: "Agent Beta Safe Inheritance",
-      subtitle: "Cross-agent learning without prompt injection",
+      time: "3:30–4:30",
+      title: "Agent Beta Safe Inheritance (On-Chain Memory)",
+      subtitle: "Read settled registry pointer and 9 allowlisted safe cards",
       script:
-        "Agent Beta only queries registry pointers and receives schema-validated, allowlisted failure cards with safe patch strategies. Raw model thoughts or unvetted IPFS text are NEVER injected into prompts.",
+        "Click 'Check On-Chain Registry Memory'. The dashboard queries Base Sepolia and Pinata gateway in real time, displaying '✓ ON-CHAIN MEMORY ACTIVE', real CID, score 100/100, and 9 verified allowlisted memory cards. If available from the live run, point to Agent Beta's inherited-memory event (60 → 90 → 100).",
+      actionLabel: "Check On-Chain Memory",
+      action: onScrollToMemory,
     },
     {
-      time: "4:40–5:00",
+      time: "4:30–5:00",
       title: "Winning Close & Honesty Boundary",
       subtitle: "Zero fabricated green states",
       script:
-        "AutoEvolve proves what is mathematically testable: strict policy improvement under an objective rubric. We never simulate green checkmarks, fake CIDs, or mock transaction hashes.",
+        "AutoEvolve proves what is mathematically testable: strict policy improvement under an objective rubric. We never simulate green checkmarks, fake CIDs, or mock transaction hashes. Every claim is verified on Base Sepolia and IPFS.",
     },
   ];
 

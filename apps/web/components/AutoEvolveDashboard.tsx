@@ -12,6 +12,7 @@ import {
   type AttestationState,
 } from "./VerifiabilityLedger";
 import { AgentBetaMemoryView } from "./AgentBetaMemoryView";
+import { HistoricalShowcaseEvidence } from "./HistoricalShowcaseEvidence";
 import { JudgeDemoGuide } from "./JudgeDemoGuide";
 import { PublicSignalsModal } from "./PublicSignalsModal";
 
@@ -28,12 +29,15 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
   const [noticeTone, setNoticeTone] = useState<"info" | "warn" | "error">(
     "info",
   );
+  const [memoryNotice, setMemoryNotice] = useState<string | null>(null);
   const [showAbiModal, setShowAbiModal] = useState(false);
   const [attestation, setAttestation] = useState<AttestationState>({
     status: "idle",
   });
 
   const registryAddress = process.env.NEXT_PUBLIC_REGISTRY_ADDRESS;
+  const explorerBaseUrl = process.env.NEXT_PUBLIC_EXPLORER_BASE_URL;
+  const pinataGateway = process.env.PINATA_GATEWAY;
 
   const selected =
     run.versions.find((v) => v.id === selectedId) ??
@@ -48,6 +52,18 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
     (c) => c.fromVersion === (selected.id === "V3" ? "V2" : selected.id),
   );
 
+  const handleScrollToHistorical = () => {
+    document
+      .getElementById("historical-evidence")
+      ?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleScrollToMemory = () => {
+    document
+      .getElementById("collective-memory")
+      ?.scrollIntoView({ behavior: "smooth" });
+  };
+
   async function execute(mode: RunMode) {
     setBusy(mode);
     setNotice(null);
@@ -61,6 +77,7 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
         run?: AgentRun;
         error?: string;
         warning?: string;
+        memoryNotice?: string;
       };
 
       if (!response.ok || !data.run) {
@@ -77,6 +94,11 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
         data.warning ??
           (mode === "live" ? "Live Gemini model run completed." : null),
       );
+      if (data.memoryNotice) {
+        setMemoryNotice(data.memoryNotice);
+      } else if (mode === "showcase") {
+        setMemoryNotice(null);
+      }
       setAttestation({ status: "idle" });
     } catch (error) {
       setNoticeTone("error");
@@ -172,6 +194,8 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
           <JudgeDemoGuide
             onRunShowcase={() => execute("showcase")}
             onOpenAbi={() => setShowAbiModal(true)}
+            onScrollToHistorical={handleScrollToHistorical}
+            onScrollToMemory={handleScrollToMemory}
           />
 
           <div className="networkBadge">
@@ -189,7 +213,9 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
           <span
             className={`modeChip ${run.mode === "live" ? "modeLive" : "modeShowcase"}`}
           >
-            {run.mode === "live" ? "LIVE MODEL RUN" : "SHOWCASE REPLAY"}
+            {run.mode === "live"
+              ? "LIVE AGENT BETA RUN (UNSETTLED)"
+              : "SHOWCASE REPLAY"}
           </span>
         </div>
       </header>
@@ -203,6 +229,28 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
             locally by <code>policy-rubric-v1</code>. No live API keys, mock
             proofs, or fake Base Sepolia transactions are claimed.
           </span>
+        </div>
+      )}
+
+      {/* Visibly honest notice banner for live model mode */}
+      {run.mode === "live" && (
+        <div className="liveRunBanner" role="status">
+          <span className="liveRunBadge">LIVE AGENT BETA RUN</span>
+          <span>
+            Real Gemini model execution inheriting verified lessons from the
+            on-chain CID. <strong>Evidence Boundary:</strong> This live run is
+            not separately ZK-proved, pinned, or settled on Base Sepolia.
+          </span>
+        </div>
+      )}
+
+      {/* Visibly display memoryNotice if Agent Beta retrieved on-chain lessons */}
+      {memoryNotice && (
+        <div className="memoryNoticeBanner" role="status">
+          <span className="memoryNoticeBadge">
+            ✓ AGENT BETA INHERITED MEMORY EVENT
+          </span>
+          <span>{memoryNotice}</span>
         </div>
       )}
 
@@ -324,8 +372,14 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
           <EvaluatorChecklist version={selected} />
         </div>
 
+        {/* Historical Attested Showcase Evidence Panel */}
+        <HistoricalShowcaseEvidence
+          explorerBaseUrl={explorerBaseUrl}
+          pinataGateway={pinataGateway}
+        />
+
         {/* Cross-Agent Collective Memory & Agent Beta */}
-        <AgentBetaMemoryView run={run} />
+        <AgentBetaMemoryView run={run} memoryNotice={memoryNotice} />
       </section>
 
       {/* Truthful Disclosures Footer */}

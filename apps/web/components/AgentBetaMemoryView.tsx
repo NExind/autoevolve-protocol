@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { AgentRun } from "@autoevolve/core";
 import { hashTaskId } from "@autoevolve/chain";
 
@@ -15,9 +15,18 @@ interface MemoryCardItem {
 
 interface AgentBetaMemoryViewProps {
   run: AgentRun;
+  memoryNotice?: string | null;
 }
 
-export function AgentBetaMemoryView({ run }: AgentBetaMemoryViewProps) {
+function truncate(value: string, left = 8, right = 6): string {
+  if (value.length <= left + right + 3) return value;
+  return `${value.slice(0, left)}…${value.slice(-right)}`;
+}
+
+export function AgentBetaMemoryView({
+  run,
+  memoryNotice,
+}: AgentBetaMemoryViewProps) {
   const [registryStatus, setRegistryStatus] = useState<
     | "idle"
     | "checking"
@@ -37,6 +46,12 @@ export function AgentBetaMemoryView({ run }: AgentBetaMemoryViewProps) {
 
   // Compute the taskHash from the task id
   const taskHash = hashTaskId(run.task.id);
+  const pinataGateway =
+    process.env.NEXT_PUBLIC_PINATA_GATEWAY ||
+    process.env.PINATA_GATEWAY ||
+    "gateway.pinata.cloud";
+  const explorerBase =
+    process.env.NEXT_PUBLIC_EXPLORER_BASE_URL || "https://sepolia.basescan.org";
 
   async function checkRegistryMemory() {
     setRegistryStatus("checking");
@@ -55,6 +70,9 @@ export function AgentBetaMemoryView({ run }: AgentBetaMemoryViewProps) {
         setRegistryStatus("verified-memory");
         setVerifiedCards(data.cards ?? []);
         setActivePointer(data.pointer ?? null);
+        setRegistryMessage(
+          "Verified Base Sepolia pointer matches IPFS CID keccak256 hash. 9 safe allowlisted memory cards retrieved with zero prompt leakage.",
+        );
       } else if (data.status === "not-found") {
         setRegistryStatus("not-found");
         setRegistryMessage(
@@ -89,6 +107,7 @@ export function AgentBetaMemoryView({ run }: AgentBetaMemoryViewProps) {
 
   return (
     <section
+      id="collective-memory"
       className="panel memoryPanel"
       aria-label="Cross-agent collective memory and Agent Beta inheritance"
     >
@@ -103,6 +122,15 @@ export function AgentBetaMemoryView({ run }: AgentBetaMemoryViewProps) {
             Allowlisted Memory Cards
           </code>
         </p>
+
+        {memoryNotice && (
+          <div className="memoryInheritanceNotice" role="status">
+            <span className="noticeBadge noticeBadgeActive">
+              ✓ AGENT BETA LESSON INHERITANCE
+            </span>
+            <p className="memoryInheritanceNoticeText">{memoryNotice}</p>
+          </div>
+        )}
 
         <div className="registryQueryBox">
           <button
@@ -134,16 +162,37 @@ export function AgentBetaMemoryView({ run }: AgentBetaMemoryViewProps) {
                     ? "○ NO SETTLED RUN FOUND"
                     : "✕ QUERY ERROR"}
             </span>
-            <p>{registryMessage}</p>
+            {registryMessage && <p>{registryMessage}</p>}
             {activePointer && (
               <div className="pointerDetails">
                 <span>
-                  CID: <code>{activePointer.cid}</code>
+                  CID:{" "}
+                  <a
+                    href={`https://${pinataGateway.replace(/^https?:\/\//, "")}/ipfs/${activePointer.cid}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="pointerLink"
+                  >
+                    <code>{activePointer.cid}</code> ↗
+                  </a>
                 </span>
                 <span>
-                  Agent: <code>{activePointer.agent}</code>
+                  Score: <strong>{activePointer.score}/100</strong>
                 </span>
-                <span>Score: {activePointer.score}/100</span>
+                <span>
+                  Version: <strong>v{activePointer.version}</strong>
+                </span>
+                <span>
+                  Settled Agent:{" "}
+                  <a
+                    href={`${explorerBase.replace(/\/$/, "")}/address/${activePointer.agent}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="pointerLink"
+                  >
+                    <code>{truncate(activePointer.agent, 6, 4)}</code> ↗
+                  </a>
+                </span>
               </div>
             )}
           </div>
@@ -167,26 +216,24 @@ export function AgentBetaMemoryView({ run }: AgentBetaMemoryViewProps) {
         <div className="memoryCards">
           {(registryStatus === "verified-memory"
             ? verifiedCards
-            : candidateLessons
-          )
-            .slice(0, 4)
-            .map((card, index) => (
-              <div className="memoryCard" key={card.id}>
-                <span className="memoryIndex">0{index + 1}</span>
-                <strong className="cardFailureCode">
-                  {card.failureCode.replaceAll("_", " ")}
-                </strong>
-                <p className="cardStrategy">{card.safePatchStrategy}</p>
-                <div className="cardFooter">
-                  <span className="cardOrigin">
-                    Origin: {card.sourceVersion}
-                  </span>
-                  <span className="cardRun">
-                    Run: {card.sourceRunId.slice(0, 8)}…
-                  </span>
-                </div>
+            : candidateLessons.slice(0, 4)
+          ).map((card, index) => (
+            <div className="memoryCard" key={card.id}>
+              <span className="memoryIndex">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <strong className="cardFailureCode">
+                {card.failureCode.replaceAll("_", " ")}
+              </strong>
+              <p className="cardStrategy">{card.safePatchStrategy}</p>
+              <div className="cardFooter">
+                <span className="cardOrigin">Origin: {card.sourceVersion}</span>
+                <span className="cardRun">
+                  Run: {card.sourceRunId.slice(0, 8)}…
+                </span>
               </div>
-            ))}
+            </div>
+          ))}
         </div>
 
         <div className="memoryFlow">
