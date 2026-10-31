@@ -5,6 +5,7 @@ import {
   createGeminiPolicyGenerator,
   parseGeneratedPolicyJson,
   runAgentLoop,
+  synthesizeDefaultSolutionDocument,
 } from "./agent";
 import { evaluatePolicy } from "./evaluator";
 import { dataDaoPolicyTask, fixturePolicies } from "./fixtures";
@@ -516,5 +517,122 @@ describe("/api/runs route security and honesty", () => {
         process.env.GEMINI_API_KEY = originalKey;
       }
     }
+  });
+
+  describe("synthesizeDefaultSolutionDocument", () => {
+    it("returns canonical health research document when prompt is empty or default", () => {
+      const docV1 = synthesizeDefaultSolutionDocument(
+        "V1",
+        fixturePolicies.V1,
+        "Autonomous Domain Solution",
+      );
+      expect(docV1).toContain(
+        "# V1 Baseline Draft: Synthetic Health Data Sharing Policy",
+      );
+      expect(docV1).toContain("Explicit Participant Consent");
+
+      const docV3 = synthesizeDefaultSolutionDocument(
+        "V3",
+        fixturePolicies.V3,
+        "",
+      );
+      expect(docV3).toContain(
+        "# V3 Production-Ready Solution: Synthetic Health Data Sharing Policy",
+      );
+    });
+
+    it("synthesizes authentic cybersecurity learning roadmap when prompt specifies cybersecurity", () => {
+      const prompt =
+        "Design a comprehensive roadmap for learning cybersecurity";
+
+      const docV1 = synthesizeDefaultSolutionDocument(
+        "V1",
+        fixturePolicies.V1,
+        prompt,
+      );
+      expect(docV1).toContain(
+        "# V1 Baseline Draft: Comprehensive Roadmap for Learning Cybersecurity",
+      );
+      expect(docV1).toContain("Linux & OS Internals");
+      expect(docV1).toContain("Wireshark");
+      expect(docV1).toContain("Nmap");
+
+      const docV2 = synthesizeDefaultSolutionDocument(
+        "V2",
+        fixturePolicies.V2,
+        prompt,
+      );
+      expect(docV2).toContain(
+        "# V2 Guarded Revision: Comprehensive Roadmap for Learning Cybersecurity",
+      );
+      expect(docV2).toContain("Splunk");
+      expect(docV2).toContain("OWASP Top 10");
+      expect(docV2).toContain("Burp Suite Professional");
+      expect(docV2).toContain("TryHackMe");
+
+      const docV3 = synthesizeDefaultSolutionDocument(
+        "V3",
+        fixturePolicies.V3,
+        prompt,
+      );
+      expect(docV3).toContain(
+        "# V3 Production-Ready Solution: Comprehensive Roadmap for Learning Cybersecurity",
+      );
+      expect(docV3).toContain("Cloud Security & Modern DevSecOps");
+      expect(docV3).toContain("MITRE ATT&CK");
+      expect(docV3).toContain("CompTIA Security+");
+      expect(docV3).toContain("OSCP");
+    });
+
+    it("synthesizes system architecture when prompt specifies distributed system", () => {
+      const prompt = "Build a distributed event-driven message queue in Go";
+      const docV1 = synthesizeDefaultSolutionDocument(
+        "V1",
+        fixturePolicies.V1,
+        prompt,
+      );
+      expect(docV1).toContain("API & Ingress Gateway");
+      expect(docV1).toContain("Core Processing Engine");
+
+      const docV2 = synthesizeDefaultSolutionDocument(
+        "V2",
+        fixturePolicies.V2,
+        prompt,
+      );
+      expect(docV2).toContain("Resilient Message Bus");
+      expect(docV2).toContain("Zero-Trust Networking");
+
+      const docV3 = synthesizeDefaultSolutionDocument(
+        "V3",
+        fixturePolicies.V3,
+        prompt,
+      );
+      expect(docV3).toContain("Active-Active High Availability");
+      expect(docV3).toContain("OpenTelemetry");
+    });
+
+    it("updates showcase run version documents when userPrompt is provided", async () => {
+      const req = new Request("http://localhost/api/runs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "showcase",
+          userPrompt:
+            "Design a comprehensive roadmap for learning cybersecurity",
+        }),
+      });
+
+      const res = await runsRoutePost(req);
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data.run.userPrompt).toBe(
+        "Design a comprehensive roadmap for learning cybersecurity",
+      );
+      expect(data.run.versions[0].solutionDocument).toContain("Wireshark");
+      expect(data.run.versions[1].solutionDocument).toContain("Burp Suite");
+      expect(data.run.versions[2].solutionDocument).toContain(
+        "CompTIA Security+",
+      );
+    });
   });
 });
