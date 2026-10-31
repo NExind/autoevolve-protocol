@@ -23,6 +23,32 @@ import type {
 
 const FEATHERLESS_BASE_URL = "https://api.featherless.ai/v1";
 
+const DATA_POLICY_SCHEMA_SPEC = `You must return a raw JSON object with EXACTLY these 10 fields and NO others:
+{
+  "requireConsent": boolean,
+  "redactDirectIdentifiers": boolean,
+  "researchPurposeOnly": boolean,
+  "auditLogging": boolean,
+  "blockRestrictedRegions": boolean,
+  "requireDualApprovalHighVolume": boolean,
+  "minKAnonymity": integer (between 1 and 10),
+  "maxExportRows": integer (between 1000 and 50000),
+  "retentionDays": integer (between 7 and 365),
+  "dailyRequestLimit": integer (between 100 and 10000)
+}
+
+Rubric criteria to achieve up to 100 points:
+- requireConsent must be true (+10 pts)
+- redactDirectIdentifiers must be true (+10 pts)
+- researchPurposeOnly must be true (+10 pts)
+- auditLogging must be true (+10 pts)
+- blockRestrictedRegions must be true (+10 pts)
+- requireDualApprovalHighVolume must be true (+10 pts)
+- minKAnonymity must be >= 5 (+10 pts)
+- maxExportRows must be <= 10000 (+10 pts)
+- retentionDays must be <= 30 (+10 pts)
+- dailyRequestLimit must be <= 1000 (+10 pts)`;
+
 function makeOpenAIClient(apiKey: string): OpenAI {
   return new OpenAI({ apiKey, baseURL: FEATHERLESS_BASE_URL });
 }
@@ -30,12 +56,17 @@ function makeOpenAIClient(apiKey: string): OpenAI {
 async function chat(
   client: OpenAI,
   model: string,
-  content: string,
+  systemPrompt: string,
+  userPrompt: string,
 ): Promise<string> {
   const response = await client.chat.completions.create({
     model,
     temperature: 0,
-    messages: [{ role: "user", content }],
+    response_format: { type: "json_object" },
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+    ],
   });
   return response.choices[0]?.message?.content ?? "";
 }
@@ -49,20 +80,23 @@ export function createFeatherlessPolicyGenerator(config: {
   model: string;
 }): PolicyGenerator {
   const client = makeOpenAIClient(config.apiKey);
+  const systemPrompt =
+    "You are an autonomous AI policy engine. Output raw JSON only adhering strictly to the required DataPolicy schema with no wrapping key and no conversational filler.";
 
   const produce = async (prompt: string) => {
-    const raw = await chat(client, config.model, prompt);
+    const raw = await chat(client, config.model, systemPrompt, prompt);
     return parseGeneratedPolicyJson(raw, `featherless:${config.model}`);
   };
 
   return {
-    generateInitial: ({ task, inheritedLessons }) =>
+    generateInitial: ({ task, inheritedLessons, userPrompt }) =>
       produce(
         [
-          "Return only a JSON DataPolicy object, no commentary.",
+          "Return only a flat JSON object matching this exact schema specification, with no wrapping key and no commentary.",
+          DATA_POLICY_SCHEMA_SPEC,
           `Task: ${task.publicSummary}`,
-          "Create a plausible initial policy with meaningful but incomplete safeguards." +
-            " Leave at least four rubric safeguards unmet so two strict revision stages can be evaluated.",
+          userPrompt ? `Domain scenario / User guidance: ${userPrompt}` : "",
+          "Create a plausible initial policy with meaningful but incomplete safeguards. Leave at least four rubric safeguards unmet so two strict revision stages can be evaluated.",
           inheritedLessons.length
             ? `Prior verified lessons: ${inheritedLessons.map((l) => l.safePatchStrategy).join(" ")}`
             : "",
@@ -71,16 +105,20 @@ export function createFeatherlessPolicyGenerator(config: {
           .join("\n"),
       ),
 
-    revise: ({ task, previous, critique, revision }) =>
+    revise: ({ task, previous, critique, revision, userPrompt }) =>
       produce(
         [
-          "Return only a JSON DataPolicy object, no commentary.",
+          "Return only a flat JSON object matching this exact schema specification, with no wrapping key and no commentary.",
+          DATA_POLICY_SCHEMA_SPEC,
           `Task: ${task.publicSummary}`,
+          userPrompt ? `Domain scenario / User guidance: ${userPrompt}` : "",
           `This is ${revision}; preserve valid controls while addressing the evaluator critique.`,
           `Previous policy: ${JSON.stringify(previous.policy)}`,
           `Failed checks: ${critique.failureCodes.join(", ")}`,
           `Repair plan: ${critique.repairPlan.join(" ")}`,
-        ].join("\n"),
+        ]
+          .filter(Boolean)
+          .join("\n"),
       ),
   };
 }
@@ -99,6 +137,8 @@ export function createFeatherlessCritic(config: {
   model: string;
 }): PolicyCritic {
   const client = makeOpenAIClient(config.apiKey);
+  const systemPrompt =
+    "You are an independent data-policy security auditor. Return a raw JSON object with keys 'summary' and 'repairPlan'.";
 
   return {
     async critique({
@@ -114,7 +154,6 @@ export function createFeatherlessCritic(config: {
       );
 
       const prompt = [
-        "You are an independent data-policy security auditor.",
         "Critique the following DataPolicy JSON against these failed rubric checks.",
         "Return ONLY a JSON object with two keys:",
         '  "summary": a one-paragraph plain-text audit finding,',
@@ -125,7 +164,7 @@ export function createFeatherlessCritic(config: {
       ].join("\n");
 
       try {
-        const raw = await chat(client, config.model, prompt);
+        const raw = await chat(client, config.model, systemPrompt, prompt);
         const cleaned = cleanJsonText(raw);
         const parsed = JSON.parse(cleaned) as FeatherlessCritiqueJson;
 

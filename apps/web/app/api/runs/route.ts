@@ -22,6 +22,10 @@ import { z } from "zod";
 const requestSchema = z
   .object({
     mode: z.enum(["showcase", "live"]).default("showcase"),
+    userPrompt: z
+      .string()
+      .max(500, "userPrompt must not exceed 500 characters")
+      .optional(),
   })
   .strict();
 
@@ -124,10 +128,19 @@ export async function POST(request: Request) {
   }
 
   const body = parseResult.data;
+  const rawPrompt = body.userPrompt?.trim();
+  const sanitizedPrompt = rawPrompt
+    ? rawPrompt.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "").slice(0, 500)
+    : undefined;
+
   if (body.mode === "showcase") {
+    const showcaseRun = createShowcaseRun();
+    if (sanitizedPrompt) {
+      showcaseRun.userPrompt = sanitizedPrompt;
+    }
     return Response.json({
       mode: "showcase",
-      run: createShowcaseRun(),
+      run: showcaseRun,
       warning:
         "This is a deterministic local showcase replay. No proof, CID, or on-chain transaction is claimed.",
     });
@@ -177,6 +190,7 @@ export async function POST(request: Request) {
       generator,
       critic,
       inheritedLessons: memoryResolution.lessons,
+      userPrompt: sanitizedPrompt,
     });
 
     return Response.json({

@@ -113,6 +113,7 @@ export interface AgentRun {
   runId: string;
   mode: RunMode;
   task: TaskDefinition;
+  userPrompt?: string;
   versions: PolicyVersion[];
   critiques: Critique[];
   events: AgentEvent[];
@@ -129,12 +130,14 @@ export interface PolicyGenerator {
   generateInitial(input: {
     task: TaskDefinition;
     inheritedLessons: InheritedLesson[];
+    userPrompt?: string;
   }): Promise<GeneratedPolicy>;
   revise(input: {
     task: TaskDefinition;
     previous: PolicyVersion;
     critique: Critique;
     revision: Exclude<VersionId, "V1">;
+    userPrompt?: string;
   }): Promise<GeneratedPolicy>;
 }
 

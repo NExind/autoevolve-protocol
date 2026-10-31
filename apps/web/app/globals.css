@@ -2536,3 +2536,220 @@ a {
   background: rgba(190, 255, 100, 0.08);
   border: 1px solid rgba(190, 255, 100, 0.3);
 }
+
+/* ── CustomPromptPanel ─────────────────────────────────────────── */
+.customPromptPanel {
+  margin: 16px 0 12px;
+  background: rgba(18, 26, 36, 0.65);
+  border: 1px solid rgba(112, 230, 176, 0.25);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.customPromptHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.customPromptToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.customPromptToggleIcon {
+  font-size: 10px;
+  color: var(--acid);
+}
+
+.activePromptIndicator {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--mint);
+  background: rgba(112, 230, 176, 0.15);
+  border: 1px solid rgba(112, 230, 176, 0.4);
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-left: 8px;
+}
+
+.customPromptClearBtn {
+  font-family: var(--mono);
+  font-size: 10px;
+  background: transparent;
+  border: 1px solid rgba(255, 120, 120, 0.3);
+  color: #ff9999;
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.customPromptClearBtn:hover {
+  background: rgba(255, 120, 120, 0.1);
+  border-color: rgba(255, 120, 120, 0.6);
+}
+
+.customPromptBody {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.customPromptHelp {
+  margin: 0 0 10px;
+  font-size: 11px;
+  color: #9cb3c9;
+  line-height: 1.4;
+}
+
+.presetChips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.presetLabel {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: #7e9bb5;
+  text-transform: uppercase;
+  margin-right: 2px;
+}
+
+.presetChip {
+  font-family: var(--mono);
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #c9d8e8;
+  border-radius: 4px;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.presetChip:hover {
+  background: rgba(190, 255, 100, 0.08);
+  border-color: rgba(190, 255, 100, 0.4);
+  color: #fff;
+}
+
+.presetChipActive {
+  background: rgba(190, 255, 100, 0.15);
+  border-color: var(--acid);
+  color: var(--acid);
+  font-weight: 600;
+}
+
+.textareaWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.customPromptTextarea {
+  width: 100%;
+  background: rgba(8, 14, 20, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: #e6f1ff;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.customPromptTextarea:focus {
+  outline: none;
+  border-color: var(--acid);
+  box-shadow: 0 0 0 1px rgba(190, 255, 100, 0.25);
+}
+
+.textareaError {
+  border-color: #ff5555;
+}
+
+.textareaFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.charCount {
+  color: #7e9bb5;
+}
+
+.promptSecurityNote {
+  color: #64819c;
+  font-size: 9px;
+}
+
+/* ── Active Prompt Display ─────────────────────────────────────── */
+.activePromptChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 2px 8px;
+  background: rgba(112, 230, 176, 0.08);
+  border: 1px solid rgba(112, 230, 176, 0.25);
+  border-radius: 4px;
+}
+
+.promptChipKicker {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--mint);
+  letter-spacing: 0.05em;
+}
+
+.promptChipText {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: #d1f3e0;
+}
+
+/* ── Score Trajectory Bar in Metric Rail ──────────────────────── */
+.scoreTrajectoryTrack {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 4px 0 2px;
+}
+
+.scoreTrajectoryBar {
+  height: 100%;
+  background: linear-gradient(90deg, #ff7b72 0%, #e3b341 50%, var(--mint) 100%);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+/* ── Copy Policy Button ───────────────────────────────────────── */
+.copyPolicyBtn {
+  color: var(--mint);
+  border-color: rgba(112, 230, 176, 0.35);
+}
+
+.copyPolicyBtn:hover {
+  background: rgba(112, 230, 176, 0.12);
+  border-color: var(--mint);
+}

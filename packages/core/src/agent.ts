@@ -135,6 +135,7 @@ export async function runAgentLoop(input: {
   critic: PolicyCritic;
   task: TaskDefinition;
   inheritedLessons?: InheritedLesson[];
+  userPrompt?: string;
 }): Promise<AgentRun> {
   const rawLessons = input.inheritedLessons ?? [];
   const parsedLessons = inheritedLessonsSchema.safeParse(rawLessons);
@@ -150,6 +151,15 @@ export async function runAgentLoop(input: {
 
   const events: AgentEvent[] = [];
   const critiques: Critique[] = [];
+
+  if (input.userPrompt) {
+    events.push({
+      at: now(),
+      stage: "generated",
+      version: "V1",
+      message: `Active domain guidance: "${input.userPrompt}".`,
+    });
+  }
 
   if (inheritedLessons.length > 0) {
     const summary = inheritedLessons
@@ -169,6 +179,7 @@ export async function runAgentLoop(input: {
   const initial = await input.generator.generateInitial({
     task: input.task,
     inheritedLessons,
+    userPrompt: input.userPrompt,
   });
   const selectedInitial = selectStagedInitial(initial);
   const v1 = selectedInitial.version;
@@ -214,6 +225,7 @@ export async function runAgentLoop(input: {
     previous: v1,
     critique: critique1,
     revision: "V2",
+    userPrompt: input.userPrompt,
   });
   const maxAllowedV2Changes = Math.min(
     3,
@@ -257,6 +269,7 @@ export async function runAgentLoop(input: {
     previous: v2,
     critique: critique2,
     revision: "V3",
+    userPrompt: input.userPrompt,
   });
   const guardedV3 = guardRevision(v2, candidateV3, Number.POSITIVE_INFINITY);
   const v3 = guardedV3.version;
@@ -288,6 +301,7 @@ export async function runAgentLoop(input: {
     runId: `run-${runSeed.slice(2, 14)}`,
     mode: "live",
     task: input.task,
+    userPrompt: input.userPrompt,
     versions: [v1, v2, v3],
     critiques,
     events,
@@ -317,11 +331,16 @@ export function createDeterministicCritic(): PolicyCritic {
 
 export function cleanJsonText(raw: string): string {
   const trimmed = raw.trim();
-  if (trimmed.startsWith("```")) {
-    return trimmed
-      .replace(/^```(?:json)?\s*/i, "")
-      .replace(/\s*```$/, "")
-      .trim();
+  // Check if there are markdown code fences anywhere in the string
+  const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (fenceMatch?.[1]) {
+    return fenceMatch[1].trim();
+  }
+  // If no fences, find first '{' and last '}'
+  const firstBrace = trimmed.indexOf("{");
+  const lastBrace = trimmed.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    return trimmed.slice(firstBrace, lastBrace + 1).trim();
   }
   return trimmed;
 }
@@ -378,11 +397,12 @@ export function createGeminiPolicyGenerator(config: {
   };
 
   return {
-    generateInitial: ({ task, inheritedLessons }) =>
+    generateInitial: ({ task, inheritedLessons, userPrompt }) =>
       produce(
         [
           "Return only a JSON DataPolicy.",
           `Task: ${task.publicSummary}`,
+          userPrompt ? `Domain scenario / User guidance: ${userPrompt}` : "",
           "Create a plausible initial policy with meaningful but incomplete safeguards. Leave at least four rubric safeguards unmet so two strict revision stages can be evaluated; do not include commentary.",
           inheritedLessons.length
             ? `Prior verified lessons: ${inheritedLessons.map((lesson) => lesson.safePatchStrategy).join(" ")}`
@@ -391,16 +411,19 @@ export function createGeminiPolicyGenerator(config: {
           .filter(Boolean)
           .join("\n"),
       ),
-    revise: ({ task, previous, critique, revision }) =>
+    revise: ({ task, previous, critique, revision, userPrompt }) =>
       produce(
         [
           "Return only a JSON DataPolicy.",
           `Task: ${task.publicSummary}`,
+          userPrompt ? `Domain scenario / User guidance: ${userPrompt}` : "",
           `This is ${revision}; preserve valid controls while addressing the evaluator critique.`,
           `Previous policy: ${JSON.stringify(previous.policy)}`,
           `Failed checks: ${critique.failureCodes.join(", ")}`,
           `Repair plan: ${critique.repairPlan.join(" ")}`,
-        ].join("\n"),
+        ]
+          .filter(Boolean)
+          .join("\n"),
       ),
   };
 }

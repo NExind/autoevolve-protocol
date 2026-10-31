@@ -16,6 +16,7 @@ import { HistoricalShowcaseEvidence } from "./HistoricalShowcaseEvidence";
 import { JudgeDemoGuide } from "./JudgeDemoGuide";
 import { PublicSignalsModal } from "./PublicSignalsModal";
 import { ProviderBadge, type LLMProvider } from "./ProviderBadge";
+import { CustomPromptPanel } from "./CustomPromptPanel";
 
 function truncate(value: string, left = 9, right = 7): string {
   if (value.length <= left + right + 3) return value;
@@ -32,6 +33,10 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
   );
   const [memoryNotice, setMemoryNotice] = useState<string | null>(null);
   const [provider, setProvider] = useState<LLMProvider>("showcase");
+  const [customPrompt, setCustomPrompt] = useState<string>("");
+  const [executionLatencyMs, setExecutionLatencyMs] = useState<number | null>(
+    null,
+  );
   const [showAbiModal, setShowAbiModal] = useState(false);
   const [attestation, setAttestation] = useState<AttestationState>({
     status: "idle",
@@ -69,11 +74,17 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
   async function execute(mode: RunMode) {
     setBusy(mode);
     setNotice(null);
+    const startTime = performance.now();
     try {
+      const payload: { mode: RunMode; userPrompt?: string } = { mode };
+      if (mode === "live" && customPrompt.trim()) {
+        payload.userPrompt = customPrompt.trim();
+      }
+
       const response = await fetch("/api/runs", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ mode }),
+        body: JSON.stringify(payload),
       });
       const data = (await response.json()) as {
         run?: AgentRun;
@@ -92,10 +103,14 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
 
       setRun(data.run);
       setSelectedId("V3");
+      const elapsed = Math.round(performance.now() - startTime);
+      setExecutionLatencyMs(elapsed);
       setNoticeTone(mode === "live" ? "info" : "warn");
       setNotice(
         data.warning ??
-          (mode === "live" ? "Live Gemini model run completed." : null),
+          (mode === "live"
+            ? `Live model run completed in ${(elapsed / 1000).toFixed(1)}s.`
+            : null),
       );
       if (data.memoryNotice) {
         setMemoryNotice(data.memoryNotice);
@@ -278,6 +293,12 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
             inheritance.
           </p>
 
+          <CustomPromptPanel
+            value={customPrompt}
+            onChange={setCustomPrompt}
+            disabled={busy !== null}
+          />
+
           <div className="heroActions">
             <button
               className="button buttonPrimary"
@@ -293,7 +314,7 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
               onClick={() => execute("live")}
               type="button"
             >
-              {busy === "live" ? "Running Gemini…" : "Run live Gemini"}
+              {busy === "live" ? "Running live model…" : "Run live evolution"}
             </button>
           </div>
 
@@ -319,6 +340,14 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
             {run.versions[0]?.evaluation.score ?? 0} →{" "}
             {run.versions[2]?.evaluation.score ?? 0}
           </strong>
+          <div className="scoreTrajectoryTrack" aria-hidden="true">
+            <div
+              className="scoreTrajectoryBar"
+              style={{
+                width: `${run.versions[2]?.evaluation.score ?? 0}%`,
+              }}
+            />
+          </div>
           <small>Strictly monotonic improvement</small>
         </div>
         <div className="metric">
@@ -331,6 +360,13 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
           <strong>+{stageThreeDelta} pts</strong>
           <small>Final remediation (dual approval, rows, retention)</small>
         </div>
+        {executionLatencyMs !== null && (
+          <div className="metric">
+            <span>EXECUTION TIME</span>
+            <strong>{(executionLatencyMs / 1000).toFixed(1)}s</strong>
+            <small>Live multi-stage loop latency</small>
+          </div>
+        )}
         <div className="metric metricStatus">
           <span>EVIDENCE LIFECYCLE</span>
           <strong>{overallEvidenceState}</strong>
@@ -344,6 +380,18 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
           <div>
             <p className="sectionKicker">EXECUTION TRACE</p>
             <h2>{run.task.title}</h2>
+            {run.userPrompt && (
+              <div className="activePromptChip" title={run.userPrompt}>
+                <span className="promptChipKicker">SCENARIO:</span>
+                <code className="promptChipText">
+                  "
+                  {run.userPrompt.length > 70
+                    ? `${run.userPrompt.slice(0, 68)}…`
+                    : run.userPrompt}
+                  "
+                </code>
+              </div>
+            )}
           </div>
           <div className="runIdentity">
             <span>RUN ID:</span>
