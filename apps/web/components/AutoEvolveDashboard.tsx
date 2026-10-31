@@ -109,7 +109,7 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
       setNotice(
         data.warning ??
           (mode === "live"
-            ? `Live model run completed in ${(elapsed / 1000).toFixed(1)}s.`
+            ? `Live evolution completed specifically for: "${data.run.task.title}" (${(elapsed / 1000).toFixed(1)}s).`
             : null),
       );
       if (data.memoryNotice) {
@@ -378,18 +378,15 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
       <section className="dashboardFrame">
         <div className="dashboardHeader">
           <div>
-            <p className="sectionKicker">EXECUTION TRACE</p>
+            <p className="sectionKicker">
+              {run.userPrompt ? "CUSTOM SCENARIO TRACE" : "EXECUTION TRACE"}
+            </p>
             <h2>{run.task.title}</h2>
+            <p className="taskSummaryLead">{run.task.publicSummary}</p>
             {run.userPrompt && (
               <div className="activePromptChip" title={run.userPrompt}>
-                <span className="promptChipKicker">SCENARIO:</span>
-                <code className="promptChipText">
-                  "
-                  {run.userPrompt.length > 70
-                    ? `${run.userPrompt.slice(0, 68)}…`
-                    : run.userPrompt}
-                  "
-                </code>
+                <span className="promptChipKicker">TARGET OBJECTIVE:</span>
+                <code className="promptChipText">"{run.userPrompt}"</code>
               </div>
             )}
           </div>
@@ -409,7 +406,11 @@ export function AutoEvolveDashboard({ initialRun }: { initialRun: AgentRun }) {
 
         {/* Workspace: Semantic Diff & Verifiability Ledger */}
         <div className="workspaceGrid">
-          <SemanticDiffViewer version={selected} previous={previous} />
+          <SemanticDiffViewer
+            version={selected}
+            previous={previous}
+            taskTitle={run.task.title}
+          />
           <VerifiabilityLedger
             run={run}
             attestation={attestation}

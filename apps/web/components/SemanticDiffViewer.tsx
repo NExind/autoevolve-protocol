@@ -31,11 +31,13 @@ const POLICY_FIELD_LABELS: Record<PolicyField, string> = {
 interface SemanticDiffViewerProps {
   version: PolicyVersion;
   previous?: PolicyVersion;
+  taskTitle?: string;
 }
 
 export function SemanticDiffViewer({
   version,
   previous,
+  taskTitle,
 }: SemanticDiffViewerProps) {
   const [showAllFields, setShowAllFields] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -54,7 +56,10 @@ export function SemanticDiffViewer({
     >
       <div className="panelHeader">
         <div>
-          <p className="sectionKicker">SEMANTIC POLICY DIFF</p>
+          <p className="sectionKicker">
+            SEMANTIC POLICY DIFF
+            {taskTitle ? ` • ${taskTitle.toUpperCase()}` : ""}
+          </p>
           <h3>
             {previous ? `${previous.id} → ${version.id}` : "V1 Baseline Policy"}
           </h3>

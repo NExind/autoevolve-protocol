@@ -2753,3 +2753,11 @@ a {
   background: rgba(112, 230, 176, 0.12);
   border-color: var(--mint);
 }
+
+.taskSummaryLead {
+  margin: 4px 0 8px;
+  font-size: 13px;
+  color: #b0c9e2;
+  line-height: 1.45;
+  max-width: 800px;
+}

@@ -403,7 +403,7 @@ export function createGeminiPolicyGenerator(config: {
           "Return only a JSON DataPolicy.",
           `Task: ${task.publicSummary}`,
           userPrompt ? `Domain scenario / User guidance: ${userPrompt}` : "",
-          "Create a plausible initial policy with meaningful but incomplete safeguards. Leave at least four rubric safeguards unmet so two strict revision stages can be evaluated; do not include commentary.",
+          "Tailor all policy fields specifically to satisfy the given task and domain scenario. Create a plausible initial policy with meaningful but incomplete safeguards. Leave at least four rubric safeguards unmet so two strict revision stages can be evaluated; do not include commentary.",
           inheritedLessons.length
             ? `Prior verified lessons: ${inheritedLessons.map((lesson) => lesson.safePatchStrategy).join(" ")}`
             : "",
@@ -417,7 +417,7 @@ export function createGeminiPolicyGenerator(config: {
           "Return only a JSON DataPolicy.",
           `Task: ${task.publicSummary}`,
           userPrompt ? `Domain scenario / User guidance: ${userPrompt}` : "",
-          `This is ${revision}; preserve valid controls while addressing the evaluator critique.`,
+          `This is ${revision}; preserve valid controls and tailor fields to the domain scenario while addressing the evaluator critique.`,
           `Previous policy: ${JSON.stringify(previous.policy)}`,
           `Failed checks: ${critique.failureCodes.join(", ")}`,
           `Repair plan: ${critique.repairPlan.join(" ")}`,
