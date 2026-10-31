@@ -121,7 +121,7 @@ The presenter must adhere to the non-negotiable honesty boundary: use only state
    - Point out that **9 verified safe memory cards** are loaded into the UI.
 3. Inspect the **Memory Cards**:
    - Each card contains only typed `failureCode` (e.g., `PII_EXPOSURE`, `K_ANONYMITY_TOO_LOW`) and structured `safePatchStrategy`.
-   - Emphasize to judges: _Raw prompts or untrusted text are NEVER passed to Agent Beta. Prompt injection is impossible because memory cards are strictly validated against an allowlist schema._
+   - Emphasize to judges: _Raw prompts and unvalidated IPFS text are never passed to Agent Beta; only schema-validated, allowlisted fields are used._
 4. If available from the live Gemini run:
    - Point to the **Agent Beta Lesson Inheritance Event** banner:
      _"Retrieved 9 verified lesson(s) from on-chain CID bafkreieh2vkmptacucurtcu7wrsepinjsmjh4dcbktk6y633ufd25z5ajm."_
@@ -133,7 +133,7 @@ The presenter must adhere to the non-negotiable honesty boundary: use only state
 
 **Presenter Script:**
 
-> _"AutoEvolve Protocol doesn't make vague claims about artificial general intelligence. We prove what can be mathematically verified: strict policy improvement under an objective rubric, cryptographically bound to decentralized storage and EVM settlement. It's reproducible, verifiable, and honest."_
+> _"AutoEvolve Protocol doesn't make vague claims about artificial general intelligence. We prove what can be mathematically verified: strict policy improvement under an objective rubric, cryptographically bound to decentralized storage and EVM settlement. It's reproducible, verifiable, and honest. The displayed historical storage and settlement artifacts are publicly verifiable; the live Gemini run is explicitly labelled unsettled."_
 
 ---
 

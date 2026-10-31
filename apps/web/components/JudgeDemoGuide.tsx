@@ -78,7 +78,7 @@ export function JudgeDemoGuide({
       title: "Winning Close & Honesty Boundary",
       subtitle: "Zero fabricated green states",
       script:
-        "AutoEvolve proves what is mathematically testable: strict policy improvement under an objective rubric. We never simulate green checkmarks, fake CIDs, or mock transaction hashes. Every claim is verified on Base Sepolia and IPFS.",
+        "AutoEvolve proves what is mathematically testable: strict policy improvement under an objective rubric. We never simulate green checkmarks, fake CIDs, or mock transaction hashes. The displayed historical storage and settlement artifacts are publicly verifiable; the live Gemini run is explicitly labelled unsettled.",
     },
   ];
 
