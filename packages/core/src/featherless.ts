@@ -98,11 +98,11 @@ export function createFeatherlessPolicyGenerator(config: {
     generateInitial: ({ task, inheritedLessons, userPrompt }) =>
       produce(
         [
-          "Return only a flat JSON object matching this exact schema specification, with no wrapping key and no commentary.",
+          "Return a JSON object with 'policy' (matching the exact schema specification) and 'solutionDocument' (a comprehensive markdown formatted roadmap, guide, or policy document).",
           DATA_POLICY_SCHEMA_SPEC,
           `Task: ${task.publicSummary}`,
           userPrompt ? `Domain scenario / User guidance: ${userPrompt}` : "",
-          "Tailor all policy fields specifically to the given task and domain scenario. Create a plausible initial policy with meaningful but incomplete safeguards. Leave at least four rubric safeguards unmet so two strict revision stages can be evaluated.",
+          "Tailor all policy fields and write the solution document specifically to the given task and domain scenario. Create a plausible initial policy with meaningful but incomplete safeguards. Leave at least four rubric safeguards unmet so two strict revision stages can be evaluated.",
           inheritedLessons.length
             ? `Prior verified lessons: ${inheritedLessons.map((l) => l.safePatchStrategy).join(" ")}`
             : "",
@@ -114,11 +114,11 @@ export function createFeatherlessPolicyGenerator(config: {
     revise: ({ task, previous, critique, revision, userPrompt }) =>
       produce(
         [
-          "Return only a flat JSON object matching this exact schema specification, with no wrapping key and no commentary.",
+          "Return a JSON object with 'policy' (matching the exact schema specification) and 'solutionDocument' (an updated, revised markdown formatted roadmap, guide, or policy document).",
           DATA_POLICY_SCHEMA_SPEC,
           `Task: ${task.publicSummary}`,
           userPrompt ? `Domain scenario / User guidance: ${userPrompt}` : "",
-          `This is ${revision}; preserve valid controls and tailor fields to the domain scenario while addressing the evaluator critique.`,
+          `This is ${revision}; preserve valid controls and tailor fields and written text to the domain scenario while addressing the evaluator critique.`,
           `Previous policy: ${JSON.stringify(previous.policy)}`,
           `Failed checks: ${critique.failureCodes.join(", ")}`,
           `Repair plan: ${critique.repairPlan.join(" ")}`,
@@ -148,10 +148,13 @@ export function createFeatherlessCritic(config: {
 
   return {
     async critique({
+      task,
       version,
+      userPrompt,
     }: {
       task: TaskDefinition;
       version: PolicyVersion;
+      userPrompt?: string;
     }): Promise<Critique> {
       // Deterministic fallback values so we never propagate an empty critique.
       const deterministicFallback = deterministicCritique(
@@ -160,14 +163,22 @@ export function createFeatherlessCritic(config: {
       );
 
       const prompt = [
-        "Critique the following DataPolicy JSON against these failed rubric checks.",
+        "You are an independent adversarial AI security auditor in AutoEvolve Protocol.",
+        `Scenario / Target Objective: ${userPrompt || task.publicSummary}`,
+        `Auditing Version: ${version.id}`,
+        `Current Score: ${version.evaluation.score}/100`,
+        `Failed Rubric Codes: ${version.evaluation.failureCodes.join(", ") || "None"}`,
+        `Current Policy: ${JSON.stringify(version.policy)}`,
+        version.solutionDocument
+          ? `Current Document Excerpt:\n${version.solutionDocument.slice(0, 1000)}`
+          : "",
+        "Critique this candidate strictly in the context of the user's domain prompt.",
         "Return ONLY a JSON object with two keys:",
-        '  "summary": a one-paragraph plain-text audit finding,',
-        '  "repairPlan": an array of short actionable strings, one per failed check.',
-        `Policy: ${JSON.stringify(version.policy)}`,
-        `Failed rubric codes: ${version.evaluation.failureCodes.join(", ")}`,
-        `Current score: ${version.evaluation.score}/100`,
-      ].join("\n");
+        '  "summary": A concise plain-text audit finding explaining specifically why this version is inadequate or risky for the given scenario.',
+        '  "repairPlan": An array of short actionable strings addressing the domain requirements and failed rubric checks.',
+      ]
+        .filter(Boolean)
+        .join("\n");
 
       try {
         const raw = await chat(client, config.model, systemPrompt, prompt);

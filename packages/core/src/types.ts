@@ -74,6 +74,7 @@ export interface PolicyVersion {
   changesFromPrevious: PolicyChange[];
   createdAt: string;
   displayCommitment?: string;
+  solutionDocument?: string;
 }
 
 export interface Critique {
@@ -124,6 +125,7 @@ export interface AgentRun {
 export interface GeneratedPolicy {
   policy: DataPolicy;
   model: string;
+  solutionDocument?: string;
 }
 
 export interface PolicyGenerator {
@@ -145,5 +147,6 @@ export interface PolicyCritic {
   critique(input: {
     task: TaskDefinition;
     version: PolicyVersion;
+    userPrompt?: string;
   }): Promise<Critique>;
 }
