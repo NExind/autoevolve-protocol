@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import type {
-  DataPolicy,
-  PolicyChange,
-  PolicyField,
-  PolicyVersion,
-  VersionId,
+import {
+  synthesizeDefaultSolutionDocument,
+  type DataPolicy,
+  type PolicyChange,
+  type PolicyField,
+  type PolicyVersion,
+  type VersionId,
 } from "@autoevolve/core";
 
 export type OutputViewMode = "matrix" | "document" | "single" | "diff" | "json";
@@ -158,71 +159,16 @@ function renderMarkdownLine(line: string, index: number) {
 function getEffectiveSolutionDocument(
   version: PolicyVersion,
   taskTitle?: string,
+  userPrompt?: string,
 ): string {
   if (version.solutionDocument && version.solutionDocument.trim().length > 0) {
     return version.solutionDocument;
   }
-
-  const p = version.policy;
-  const isV1 = version.id === "V1";
-  const isV2 = version.id === "V2";
-  const title = taskTitle ?? "Autonomous Domain Solution";
-
-  if (isV1) {
-    return `# ${version.id} Baseline Draft: ${title}
-
-## Overview & Initial Objective
-Preliminary framework generated for the specified objective. Outlines initial operational protocols, authorization gates, and data retention rules.
-
-### Draft Parameters & Controls
-- **Explicit Participant Consent**: ${p.requireConsent ? "Enforced" : "Omitted (Unverified access permitted)"}
-- **Direct Identifier Redaction**: ${p.redactDirectIdentifiers ? "Active" : "Disabled (Potential PII exposure)"}
-- **Research Purpose Gate**: ${p.researchPurposeOnly ? "Strictly restricted" : "Open access"}
-- **Audit Logging**: ${p.auditLogging ? "Tamper-evident logs enabled" : "No immutable logging"}
-- **Restricted Region Fence**: ${p.blockRestrictedRegions ? "Active" : "Disabled"}
-- **Dual Approval for High Volume**: ${p.requireDualApprovalHighVolume ? "Enabled" : "Disabled"}
-- **k-Anonymity Threshold**: ${p.minKAnonymity}
-- **Max Export Rows**: ${p.maxExportRows.toLocaleString()} rows
-- **Data Retention Window**: ${p.retentionDays} days
-- **Daily Request Limit**: ${p.dailyRequestLimit} requests / day
-
-### Rubric Evaluation & Identified Gaps
-Current Score: **${version.evaluation.score}/100**
-Identified ${version.evaluation.failureCodes.length} safety violations. Awaiting critique from the adversarial reviewer to guide V2 revision.`;
-  }
-
-  if (isV2) {
-    return `# ${version.id} Guarded Revision: ${title}
-
-## Evolution & Remediation Summary
-Revision incorporates actionable repair strategies from the adversarial critic. High-risk controls have been hardened while balancing domain operational requirements.
-
-### Updated Safeguards & Mitigations
-- **k-Anonymity**: Set to ${p.minKAnonymity} (strengthened against quasi-identifier re-identification)
-- **PII Protection**: ${p.redactDirectIdentifiers ? "Direct identifiers systematically redacted" : "Pending"}
-- **Geographic Gate**: ${p.blockRestrictedRegions ? "Restricted region blocking active" : "Pending"}
-- **Audit Logging**: ${p.auditLogging ? "Immutable logging active" : "Pending"}
-
-### Remaining Enhancements for V3
-Current Score: **${version.evaluation.score}/100**. ${version.evaluation.failureCodes.length} outstanding control(s) require remediation before production deployment.`;
-  }
-
-  return `# ${version.id} Production-Ready Solution: ${title}
-
-## Final Hardened Architecture
-All 10 deterministic security controls in policy-rubric-v1 have been achieved (100/100 Rubric Score). Validated for cryptographic Groth16 witness generation and Base Sepolia settlement.
-
-### Production Controls Matrix
-1. **Explicit Participant Consent**: Enforced (Mandatory participant authorization gate)
-2. **Direct Identifier Redaction**: Active (Automated field stripping & tokenization)
-3. **Research-Only Restriction**: Active (Non-research and commercial use blocked)
-4. **Tamper-Evident Audit Logging**: Active (Append-only query accountability)
-5. **Restricted Region Blocking**: Active (Geo-fencing perimeter active)
-6. **Dual Approval for High Volume**: Active (Dual signature required for large queries)
-7. **k-Anonymity Floor**: Floor ${p.minKAnonymity} enforced (Protects micro-cohorts)
-8. **Export Limit**: Capped at ${p.maxExportRows.toLocaleString()} rows per query
-9. **Retention Window**: Strictly limited to ${p.retentionDays} days
-10. **Daily Request Quota**: Rate-limited to ${p.dailyRequestLimit} requests/day`;
+  return synthesizeDefaultSolutionDocument(
+    version.id,
+    version.policy,
+    userPrompt || taskTitle,
+  );
 }
 
 interface SemanticDiffViewerProps {
@@ -232,6 +178,7 @@ interface SemanticDiffViewerProps {
   versions?: PolicyVersion[];
   selectedId?: VersionId;
   onSelectVersion?: (id: VersionId) => void;
+  userPrompt?: string;
 }
 
 export function SemanticDiffViewer({
@@ -241,6 +188,7 @@ export function SemanticDiffViewer({
   versions = [],
   selectedId,
   onSelectVersion,
+  userPrompt,
 }: SemanticDiffViewerProps) {
   const [viewMode, setViewMode] = useState<OutputViewMode>("document");
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -291,7 +239,11 @@ export function SemanticDiffViewer({
         : v2);
 
   const changes = activeVersion.changesFromPrevious;
-  const effectiveDoc = getEffectiveSolutionDocument(activeVersion, taskTitle);
+  const effectiveDoc = getEffectiveSolutionDocument(
+    activeVersion,
+    taskTitle,
+    userPrompt,
+  );
 
   function copyToClipboard(text: string, key: string) {
     navigator.clipboard.writeText(text);

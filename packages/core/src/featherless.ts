@@ -11,7 +11,11 @@
  */
 
 import OpenAI from "openai";
-import { cleanJsonText, parseGeneratedPolicyJson } from "./agent";
+import {
+  cleanJsonText,
+  parseGeneratedPolicyJson,
+  synthesizeDefaultSolutionDocument,
+} from "./agent";
 import { deterministicCritique } from "./evaluator";
 import type {
   Critique,
@@ -19,6 +23,7 @@ import type {
   PolicyGenerator,
   PolicyVersion,
   TaskDefinition,
+  VersionId,
 } from "./types";
 
 const FEATHERLESS_BASE_URL = "https://api.featherless.ai/v1";
@@ -77,6 +82,49 @@ async function chat(
   return response.choices[0]?.message?.content ?? "";
 }
 
+async function generateFeatherlessDocumentText(
+  client: OpenAI,
+  model: string,
+  userPrompt: string | undefined,
+  task: TaskDefinition,
+  version: VersionId,
+  critiqueSummary?: string,
+): Promise<string> {
+  const effectivePrompt = userPrompt || task.publicSummary;
+  const versionInstructions =
+    version === "V1"
+      ? "Write the Initial Baseline Draft (V1). Provide an introductory executive overview, foundational modules/milestones, tools, and technical breakdown. Note any open challenges, provisional assumptions, or areas needing hardening."
+      : version === "V2"
+        ? `Write the Guarded Revision (V2). Incorporate improvements addressing the adversarial audit critique: "${critiqueSummary || "Harden defensive controls and add comprehensive verification."}". Detail enhanced modules, practical security/hardening controls, and deeper technical depth.`
+        : "Write the Final Production-Ready Solution (V3). Provide a complete, hardened, production-grade deliverable with end-to-end tooling, operational verification checkpoints, and production sign-offs.";
+
+  const prompt = [
+    "You are an expert technical lead and domain architect.",
+    `Objective: ${effectivePrompt}`,
+    `Document Stage: Version ${version}`,
+    versionInstructions,
+    "Format your response in clean, professional GitHub-flavored Markdown. Include a main title (# ...), structured subheadings (##, ###), bullet lists, and technical specifics. Do NOT wrap the entire response in a JSON object or code block. Return direct Markdown text.",
+  ].join("\n\n");
+
+  try {
+    const response = await client.chat.completions.create({
+      model,
+      temperature: 0.2,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are an expert technical architect and author. You write comprehensive, structured, professional Markdown documentation directly addressing user objectives.",
+        },
+        { role: "user", content: prompt },
+      ],
+    });
+    return response.choices[0]?.message?.content?.trim() ?? "";
+  } catch {
+    return "";
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Generator
 // ---------------------------------------------------------------------------
@@ -89,43 +137,132 @@ export function createFeatherlessPolicyGenerator(config: {
   const systemPrompt =
     "You are an autonomous AI policy engine. Output raw JSON only adhering strictly to the required DataPolicy schema with no wrapping key and no conversational filler.";
 
-  const produce = async (prompt: string) => {
+  const producePolicy = async (prompt: string) => {
     const raw = await chat(client, config.model, systemPrompt, prompt);
+    try {
+      const parsed = JSON.parse(cleanJsonText(raw)) as Record<string, unknown>;
+      const target =
+        parsed &&
+        typeof parsed === "object" &&
+        "policy" in parsed &&
+        typeof (parsed as Record<string, unknown>).policy === "object"
+          ? ((parsed as Record<string, unknown>).policy as Record<
+              string,
+              unknown
+            >)
+          : parsed;
+
+      if (target && typeof target === "object") {
+        if (typeof target.minKAnonymity === "number") {
+          target.minKAnonymity = Math.max(
+            0,
+            Math.min(255, Math.round(target.minKAnonymity)),
+          );
+        }
+        if (typeof target.maxExportRows === "number") {
+          target.maxExportRows = Math.max(
+            1,
+            Math.min(16383, Math.round(target.maxExportRows)),
+          );
+        }
+        if (typeof target.retentionDays === "number") {
+          target.retentionDays = Math.max(
+            1,
+            Math.min(63, Math.round(target.retentionDays)),
+          );
+        }
+        if (typeof target.dailyRequestLimit === "number") {
+          target.dailyRequestLimit = Math.max(
+            1,
+            Math.min(127, Math.round(target.dailyRequestLimit)),
+          );
+        }
+        return parseGeneratedPolicyJson(
+          JSON.stringify(parsed),
+          `featherless:${config.model}`,
+        );
+      }
+    } catch {
+      // Let parseGeneratedPolicyJson handle malformed JSON
+    }
     return parseGeneratedPolicyJson(raw, `featherless:${config.model}`);
   };
 
   return {
-    generateInitial: ({ task, inheritedLessons, userPrompt }) =>
-      produce(
-        [
-          "Return a JSON object with 'policy' (matching the exact schema specification) and 'solutionDocument' (a comprehensive markdown formatted roadmap, guide, or policy document).",
-          DATA_POLICY_SCHEMA_SPEC,
-          `Task: ${task.publicSummary}`,
-          userPrompt ? `Domain scenario / User guidance: ${userPrompt}` : "",
-          "Tailor all policy fields and write the solution document specifically to the given task and domain scenario. Create a plausible initial policy with meaningful but incomplete safeguards. Leave at least four rubric safeguards unmet so two strict revision stages can be evaluated.",
-          inheritedLessons.length
-            ? `Prior verified lessons: ${inheritedLessons.map((l) => l.safePatchStrategy).join(" ")}`
-            : "",
-        ]
-          .filter(Boolean)
-          .join("\n"),
-      ),
+    generateInitial: async ({ task, inheritedLessons, userPrompt }) => {
+      const policyPrompt = [
+        DATA_POLICY_SCHEMA_SPEC,
+        `Task: ${task.publicSummary}`,
+        userPrompt ? `Domain scenario / User guidance: ${userPrompt}` : "",
+        "Create a plausible initial policy with meaningful but incomplete safeguards. Leave at least four rubric safeguards unmet so two strict revision stages can be evaluated.",
+        inheritedLessons.length
+          ? `Prior verified lessons: ${inheritedLessons.map((l) => l.safePatchStrategy).join(" ")}`
+          : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
 
-    revise: ({ task, previous, critique, revision, userPrompt }) =>
-      produce(
-        [
-          "Return a JSON object with 'policy' (matching the exact schema specification) and 'solutionDocument' (an updated, revised markdown formatted roadmap, guide, or policy document).",
-          DATA_POLICY_SCHEMA_SPEC,
-          `Task: ${task.publicSummary}`,
-          userPrompt ? `Domain scenario / User guidance: ${userPrompt}` : "",
-          `This is ${revision}; preserve valid controls and tailor fields and written text to the domain scenario while addressing the evaluator critique.`,
-          `Previous policy: ${JSON.stringify(previous.policy)}`,
-          `Failed checks: ${critique.failureCodes.join(", ")}`,
-          `Repair plan: ${critique.repairPlan.join(" ")}`,
-        ]
-          .filter(Boolean)
-          .join("\n"),
-      ),
+      const [policyResult, docText] = await Promise.all([
+        producePolicy(policyPrompt),
+        generateFeatherlessDocumentText(
+          client,
+          config.model,
+          userPrompt,
+          task,
+          "V1",
+        ).catch(() => ""),
+      ]);
+
+      return {
+        ...policyResult,
+        solutionDocument:
+          docText ||
+          synthesizeDefaultSolutionDocument(
+            "V1",
+            policyResult.policy,
+            userPrompt,
+            task,
+          ),
+      };
+    },
+
+    revise: async ({ task, previous, critique, revision, userPrompt }) => {
+      const revisePrompt = [
+        DATA_POLICY_SCHEMA_SPEC,
+        `Task: ${task.publicSummary}`,
+        userPrompt ? `Domain scenario / User guidance: ${userPrompt}` : "",
+        `This is ${revision}; preserve valid controls and tailor fields to the domain scenario while addressing the evaluator critique.`,
+        `Previous policy: ${JSON.stringify(previous.policy)}`,
+        `Failed checks: ${critique.failureCodes.join(", ")}`,
+        `Repair plan: ${critique.repairPlan.join(" ")}`,
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      const [policyResult, docText] = await Promise.all([
+        producePolicy(revisePrompt),
+        generateFeatherlessDocumentText(
+          client,
+          config.model,
+          userPrompt,
+          task,
+          revision,
+          critique.summary,
+        ).catch(() => ""),
+      ]);
+
+      return {
+        ...policyResult,
+        solutionDocument:
+          docText ||
+          synthesizeDefaultSolutionDocument(
+            revision,
+            policyResult.policy,
+            userPrompt,
+            task,
+          ),
+      };
+    },
   };
 }
 

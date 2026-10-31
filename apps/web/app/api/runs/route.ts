@@ -8,6 +8,7 @@ import {
   createShowcaseRun,
   dataDaoPolicyTask,
   runAgentLoop,
+  synthesizeDefaultSolutionDocument,
   type InheritedLesson,
 } from "@autoevolve/core";
 import { retrieveVerifiedMemory } from "@autoevolve/memory";
@@ -165,6 +166,15 @@ export async function POST(request: Request) {
     if (sanitizedPrompt) {
       showcaseRun.userPrompt = sanitizedPrompt;
       showcaseRun.task = activeTask;
+      showcaseRun.versions = showcaseRun.versions.map((v) => ({
+        ...v,
+        solutionDocument: synthesizeDefaultSolutionDocument(
+          v.id,
+          v.policy,
+          sanitizedPrompt,
+          activeTask,
+        ),
+      }));
     }
     return Response.json({
       mode: "showcase",
