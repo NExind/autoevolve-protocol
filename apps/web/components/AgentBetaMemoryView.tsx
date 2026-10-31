@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { AgentRun } from "@autoevolve/core";
 import { hashTaskId } from "@autoevolve/chain";
+import { MemoryEmbeddingBadge } from "./MemoryEmbeddingBadge";
 
 interface MemoryCardItem {
   id: string;
@@ -37,6 +38,7 @@ export function AgentBetaMemoryView({
   >("idle");
   const [registryMessage, setRegistryMessage] = useState<string | null>(null);
   const [verifiedCards, setVerifiedCards] = useState<MemoryCardItem[]>([]);
+  const [embeddingRanked, setEmbeddingRanked] = useState(false);
   const [activePointer, setActivePointer] = useState<{
     cid: string;
     agent: string;
@@ -69,6 +71,7 @@ export function AgentBetaMemoryView({
       } else if (data.status === "verified-memory") {
         setRegistryStatus("verified-memory");
         setVerifiedCards(data.cards ?? []);
+        setEmbeddingRanked(data.embeddingRanked === true);
         setActivePointer(data.pointer ?? null);
         setRegistryMessage(
           "Verified Base Sepolia pointer matches IPFS CID keccak256 hash. 9 safe allowlisted memory cards retrieved with zero prompt leakage.",
@@ -206,6 +209,10 @@ export function AgentBetaMemoryView({
               ? `ON-CHAIN VERIFIED MEMORY CARDS (${verifiedCards.length})`
               : `LOCAL MEMORY CANDIDATES (${candidateLessons.length})`}
           </span>
+          <MemoryEmbeddingBadge
+            active={registryStatus === "verified-memory" && embeddingRanked}
+            cardCount={verifiedCards.length}
+          />
           <span className="memoryProvenanceNote">
             {registryStatus === "verified-memory"
               ? "Retrieved from Base Sepolia registry CID"

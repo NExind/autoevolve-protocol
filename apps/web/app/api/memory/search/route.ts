@@ -3,6 +3,7 @@ import {
   allowlistedCardsToInheritedLessons,
   createGeminiEmbedder,
   rankMemoryCards,
+  rankMemoryCardsByText,
   retrieveVerifiedMemory,
 } from "@autoevolve/memory";
 import { isAddress, type Address, type Hex } from "viem";
@@ -45,24 +46,26 @@ export async function GET(request: Request) {
     });
     const embedder =
       process.env.MEMORY_EMBEDDINGS_ENABLED === "true" &&
-      process.env.GEMINI_API_KEY &&
-      safeCards.some((card) => card.embedding?.length)
+      process.env.GEMINI_API_KEY
         ? createGeminiEmbedder({
             apiKey: process.env.GEMINI_API_KEY,
             model: process.env.GEMINI_EMBEDDING_MODEL,
           })
         : undefined;
-    const cards = await rankMemoryCards(
-      snapshot.task.publicSummary,
-      safeCards,
-      embedder,
-    );
+    const cards = embedder
+      ? await rankMemoryCardsByText(
+          snapshot.task.publicSummary,
+          safeCards,
+          embedder,
+        )
+      : await rankMemoryCards(snapshot.task.publicSummary, safeCards);
     const lessons = allowlistedCardsToInheritedLessons(cards);
     return Response.json({
       status: "verified-memory",
       pointer,
       cards,
       lessons,
+      embeddingRanked: embedder !== undefined,
     });
   } catch (error) {
     return Response.json(

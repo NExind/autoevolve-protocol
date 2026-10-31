@@ -81,7 +81,11 @@ export interface Critique {
   summary: string;
   failureCodes: FailureCode[];
   repairPlan: string[];
-  author: "fixture-critic" | "gemini-critic" | "deterministic-critic";
+  author:
+    | "fixture-critic"
+    | "gemini-critic"
+    | "deterministic-critic"
+    | "featherless-critic";
 }
 
 export interface AgentEvent {

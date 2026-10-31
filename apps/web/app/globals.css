@@ -2473,3 +2473,66 @@ a {
 .pointerLink:hover {
   text-decoration: underline;
 }
+
+/* ── MemoryEmbeddingBadge ─────────────────────────────────────── */
+.embeddingBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--acid);
+  background: rgba(190, 255, 100, 0.1);
+  border: 1px solid rgba(190, 255, 100, 0.35);
+  border-radius: 4px;
+  padding: 2px 7px;
+  margin-left: 8px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* ── ProviderBadge ───────────────────────────────────────────── */
+.providerBadge {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  font-family: var(--mono);
+  border-radius: 4px;
+  padding: 3px 8px;
+  margin-left: 10px;
+  font-size: 10px;
+  line-height: 1.2;
+  vertical-align: middle;
+}
+
+.providerBadgeLabel {
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.providerBadgeSub {
+  font-size: 9px;
+  opacity: 0.7;
+  letter-spacing: 0.03em;
+}
+
+.providerBadgeGemini {
+  color: #a8c7fa;
+  background: rgba(168, 199, 250, 0.08);
+  border: 1px solid rgba(168, 199, 250, 0.3);
+}
+
+.providerBadgeFeatherless {
+  color: var(--mint);
+  background: rgba(112, 230, 176, 0.1);
+  border: 1px solid rgba(112, 230, 176, 0.4);
+}
+
+.providerBadgeShowcase {
+  color: var(--acid);
+  background: rgba(190, 255, 100, 0.08);
+  border: 1px solid rgba(190, 255, 100, 0.3);
+}
