@@ -31,11 +31,17 @@ const DATA_POLICY_SCHEMA_SPEC = `You must return a raw JSON object with EXACTLY 
   "auditLogging": boolean,
   "blockRestrictedRegions": boolean,
   "requireDualApprovalHighVolume": boolean,
-  "minKAnonymity": integer (between 1 and 10),
-  "maxExportRows": integer (between 1000 and 50000),
-  "retentionDays": integer (between 7 and 365),
-  "dailyRequestLimit": integer (between 100 and 10000)
+  "minKAnonymity": integer between 0 and 20 (passing is >= 5),
+  "maxExportRows": integer between 500 and 15000 (passing is <= 10000),
+  "retentionDays": integer between 1 and 60 (passing is <= 30),
+  "dailyRequestLimit": integer between 1 and 120 (passing is <= 100)
 }
+
+STRICT CIRCUIT BITWIDTH BOUNDARIES (values outside will fail schema validation):
+- minKAnonymity: must be between 0 and 255
+- maxExportRows: must be between 1 and 16383 (strict upper limit: 16383)
+- retentionDays: must be between 1 and 63 (strict upper limit: 63)
+- dailyRequestLimit: must be between 1 and 127 (strict upper limit: 127)
 
 Rubric criteria to achieve up to 100 points:
 - requireConsent must be true (+10 pts)
@@ -47,7 +53,7 @@ Rubric criteria to achieve up to 100 points:
 - minKAnonymity must be >= 5 (+10 pts)
 - maxExportRows must be <= 10000 (+10 pts)
 - retentionDays must be <= 30 (+10 pts)
-- dailyRequestLimit must be <= 1000 (+10 pts)`;
+- dailyRequestLimit must be <= 100 (+10 pts)`;
 
 function makeOpenAIClient(apiKey: string): OpenAI {
   return new OpenAI({ apiKey, baseURL: FEATHERLESS_BASE_URL });
@@ -96,7 +102,7 @@ export function createFeatherlessPolicyGenerator(config: {
           DATA_POLICY_SCHEMA_SPEC,
           `Task: ${task.publicSummary}`,
           userPrompt ? `Domain scenario / User guidance: ${userPrompt}` : "",
-          "Create a plausible initial policy with meaningful but incomplete safeguards. Leave at least four rubric safeguards unmet so two strict revision stages can be evaluated.",
+          "Tailor all policy fields specifically to the given task and domain scenario. Create a plausible initial policy with meaningful but incomplete safeguards. Leave at least four rubric safeguards unmet so two strict revision stages can be evaluated.",
           inheritedLessons.length
             ? `Prior verified lessons: ${inheritedLessons.map((l) => l.safePatchStrategy).join(" ")}`
             : "",
@@ -112,7 +118,7 @@ export function createFeatherlessPolicyGenerator(config: {
           DATA_POLICY_SCHEMA_SPEC,
           `Task: ${task.publicSummary}`,
           userPrompt ? `Domain scenario / User guidance: ${userPrompt}` : "",
-          `This is ${revision}; preserve valid controls while addressing the evaluator critique.`,
+          `This is ${revision}; preserve valid controls and tailor fields to the domain scenario while addressing the evaluator critique.`,
           `Previous policy: ${JSON.stringify(previous.policy)}`,
           `Failed checks: ${critique.failureCodes.join(", ")}`,
           `Repair plan: ${critique.repairPlan.join(" ")}`,

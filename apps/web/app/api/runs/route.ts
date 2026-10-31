@@ -35,6 +35,30 @@ export interface ServerSideMemoryResolution {
   sourceCid?: string;
 }
 
+export function deriveTaskTitle(prompt: string): string {
+  const firstSentence = prompt.split(/[.!?\n]/)[0]?.trim();
+  if (!firstSentence) return "Custom Policy Evolution";
+  const words = firstSentence.split(/\s+/);
+  if (words.length <= 8) {
+    return firstSentence;
+  }
+  return `${words.slice(0, 8).join(" ")}…`;
+}
+
+export function deriveTaskFromPrompt(prompt?: string) {
+  if (!prompt || !prompt.trim()) {
+    return dataDaoPolicyTask;
+  }
+  const clean = prompt.trim();
+  const shortId = keccak256(stringToHex(clean)).slice(2, 10);
+  return {
+    id: `custom-task-${shortId}`,
+    title: deriveTaskTitle(clean),
+    publicSummary: clean,
+    rubricVersion: "policy-rubric-v1" as const,
+  };
+}
+
 export async function loadVerifiedLessonsServerSide(options?: {
   registryAddress?: string;
   rpcUrl?: string;
@@ -133,10 +157,13 @@ export async function POST(request: Request) {
     ? rawPrompt.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "").slice(0, 500)
     : undefined;
 
+  const activeTask = deriveTaskFromPrompt(sanitizedPrompt);
+
   if (body.mode === "showcase") {
     const showcaseRun = createShowcaseRun();
     if (sanitizedPrompt) {
       showcaseRun.userPrompt = sanitizedPrompt;
+      showcaseRun.task = activeTask;
     }
     return Response.json({
       mode: "showcase",
@@ -186,7 +213,7 @@ export async function POST(request: Request) {
 
   try {
     const run = await runAgentLoop({
-      task: dataDaoPolicyTask,
+      task: activeTask,
       generator,
       critic,
       inheritedLessons: memoryResolution.lessons,
