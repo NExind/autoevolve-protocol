@@ -16,7 +16,7 @@ The presenter must adhere to the non-negotiable honesty boundary: use only state
 1. Open the dashboard at `http://localhost:3000` (or production URL).
 2. Point out the top header:
    - Notice the **Showcase Replay** badge: clearly discloses offline deterministic mode.
-   - Notice the **Base Sepolia (84532)** status: neutral/unconfigured dot, never a deceptive green checkmark before settlement.
+   - Notice the **Base Sepolia (84532)** status: indicates live registry connection when configured, never a deceptive status.
 3. Highlight the **Cryptographic Trust Boundary** card in the hero:
    - Explicitly contrast what IS proven (strict score monotonicity 40 → 70 → 100, 10 deterministic checks, Poseidon commitments, run ID, and CID binding) versus what is NOT proven (hidden LLM reasoning, internal chain-of-thought, or broad factual truth).
 4. Click **Inspect 13-Signal ABI ↗**:
@@ -57,7 +57,7 @@ The presenter must adhere to the non-negotiable honesty boundary: use only state
 
 ---
 
-## 1:45–3:00 — Zero-Knowledge Proof Boundary & Prover Workflow
+## 1:45–2:30 — Zero-Knowledge Proof Boundary & Prover Workflow
 
 **Presenter Script:**
 
@@ -73,54 +73,63 @@ The presenter must adhere to the non-negotiable honesty boundary: use only state
    - Circuit outputs: derived scores (40, 70, 100) and metadata binding.
    - Proof constraint: enforces `nextScore > previousScore` strictly.
 3. Honest evidence check:
-   - If local proof files exist under `circuits/proofs/`, show them.
-   - If proofs have not been generated in this session, state truthfully: _"The Circom circuit and input generator are verified, and proof generation is externalized to an x86-64 proof host via `pnpm zk:prove` to avoid simulated browser proofs."_
+   - Highlight the 13-signal output-first public signal structure.
+   - Explain truthful externalization: _"The Circom circuit and input generator are verified, and proof generation is externalized to an x86-64 proof host via `pnpm zk:prove` to avoid simulated browser proofs."_
 
 ---
 
-## 3:00–4:00 — Sanitized Decentralized Memory (IPFS) & On-Chain Settlement
+## 2:30–3:30 — Historical Attested Showcase Evidence (Base Sepolia & IPFS)
 
 **Presenter Script:**
 
-> _"Once a policy improvement candidate is frozen, we prepare an immutable memory snapshot and attest it on Base Sepolia."_
+> _"These public artifacts belong to the historical attested showcase (40 → 70 → 100), whereas the live Gemini Agent Beta run demonstrated safe lesson inheritance. Every on-chain settlement and decentralized memory snapshot is publicly verifiable on Base Sepolia and the Pinata IPFS gateway."_
 
 **Dashboard Actions:**
 
-1. Click **Prepare Sanitized Memory Snapshot**:
-   - Explain what happens behind the scenes:
-     - Sanitizes execution memory into a canonical `SnapshotCore`.
-     - Completely strips private prompts, API keys, raw model thoughts, and user traces.
-     - Derives canonical SHA-256 payload hash (displayed in UI).
-2. Honest status rendering:
-   - If `PINATA_JWT` is configured: shows real `bafy...` CID and clickable IPFS gateway link.
-   - If `PINATA_JWT` is unconfigured: visibly shows `PREPARED (LOCAL)` with canonical hash, explaining that a real CID is only returned when Pinata credentials are supplied.
-3. Settlement status:
-   - If Base Sepolia transaction exists: shows confirmed tx hash with link to BaseScan Sepolia (`https://sepolia.basescan.org/tx/...`).
-   - If unconfigured: shows `UNSETTLED`, never displaying a fabricated transaction hash.
+1. Navigate to the **Historical Attested Showcase Evidence** panel:
+   - Point out the non-negotiable evidence boundary banner:
+     _"These public artifacts belong to the historical attested showcase, not the current live Gemini run."_
+   - Show the historical score progression: **40 → 70 → 100** for Run ID `showcase-run-2026-10-30`.
+2. Inspect the verified public artifacts:
+   - **IPFS Pinata Gateway:** Click the CID link [`bafkreieh2vkmptacucurtcu7wrsepinjsmjh4dcbktk6y633ufd25z5ajm`](https://gateway.pinata.cloud/ipfs/bafkreieh2vkmptacucurtcu7wrsepinjsmjh4dcbktk6y633ufd25z5ajm) to show the immutable JSON `SnapshotCore` with 9 allowlisted memory cards and matching SHA-256 payload hash (`0x8964650c295a1df37ee403ba597e8303c433621aeb959ea41db69d3da517b435`).
+   - **Base Sepolia Registry:** Click the contract link [`0x24473c0043b13d56874d10de9675728e2014a66c`](https://sepolia.basescan.org/address/0x24473c0043b13d56874d10de9675728e2014a66c) to show the active registry on BaseScan Sepolia.
+   - **V1 → V2 Settlement Receipt:** Click [`0x50658aff19d309cbc1cab639d1070214f0a66f9b46cef14dcce41f681325884f`](https://sepolia.basescan.org/tx/0x50658aff19d309cbc1cab639d1070214f0a66f9b46cef14dcce41f681325884f) (Block 52402461, score 40 → 70, 0.0001 ETH bounty paid).
+   - **V2 → V3 Settlement Receipt:** Click [`0xf611bf34e33a4e8b81580a1d4010a0e3343d765aedfb6effee7346b252e8bb5f`](https://sepolia.basescan.org/tx/0xf611bf34e33a4e8b81580a1d4010a0e3343d765aedfb6effee7346b252e8bb5f) (Block 52402476, score 70 → 100, 0.0001 ETH bounty paid, verified version 3).
+   - **Groth16 Verifier Contract:** Click [`0x7c32dcfcaaae6bdcc6f5d2daa61b7e91629aa764`](https://sepolia.basescan.org/address/0x7c32dcfcaaae6bdcc6f5d2daa61b7e91629aa764) to show the on-chain bn128 pairing verifier.
+   - **Escrow Funding Tx:** Click [`0xe97cfe3d76aaf64118d8c8e83b79c51086557442a0313442f7b2be7786bfc78c`](https://sepolia.basescan.org/tx/0xe97cfe3d76aaf64118d8c8e83b79c51086557442a0313442f7b2be7786bfc78c) to show the funded 0.0002 ETH reward pool.
 
 ---
 
-## 4:00–4:40 — Cross-Agent Collective Memory (Agent Beta Inheritance)
+## 3:30–4:30 — Cross-Agent Collective Memory & Agent Beta Safe Inheritance
 
 **Presenter Script:**
 
-> _"The true test of a memory protocol is whether another agent can safely learn from past failures without suffering prompt injection."_
+> _"The true test of a memory protocol is whether another agent can safely learn from past failures without suffering prompt injection. Let's inspect how Agent Beta queries Base Sepolia and inherits lessons."_
 
 **Dashboard Actions:**
 
 1. Navigate to the **Cross-Agent Collective Memory** section:
-   - Point out the data pipeline:
+   - Point out the security pipeline:
      `Registry Pointer → CID Keccak Hash Check → Schema Validation → Allowlisted Memory Cards`.
 2. Click **Check On-Chain Registry Memory**:
-   - Demonstrates real live query to `GET /api/memory/search?taskHash=...`.
-   - Explains that without registry deployment, the protocol returns an honest `UNCONFIGURED` state rather than mocking data.
+   - The dashboard makes a live call to `GET /api/memory/search?taskHash=0xee47106d1510135e97c62f99e8ca2e018320588c9da88917a11d55bbeff49890`.
+   - Visibly observe the verified state:
+     - **✓ ON-CHAIN MEMORY ACTIVE**
+     - CID: `bafkreieh2vkmptacucurtcu7wrsepinjsmjh4dcbktk6y633ufd25z5ajm` (clickable)
+     - Score: **100/100** (Version: **v3**)
+     - Settled Agent: `0xDad3...2F46`
+   - Point out that **9 verified safe memory cards** are loaded into the UI.
 3. Inspect the **Memory Cards**:
    - Each card contains only typed `failureCode` (e.g., `PII_EXPOSURE`, `K_ANONYMITY_TOO_LOW`) and structured `safePatchStrategy`.
    - Emphasize to judges: _Raw prompts or untrusted text are NEVER passed to Agent Beta. Prompt injection is impossible because memory cards are strictly validated against an allowlist schema._
+4. If available from the live Gemini run:
+   - Point to the **Agent Beta Lesson Inheritance Event** banner:
+     _"Retrieved 9 verified lesson(s) from on-chain CID bafkreieh2vkmptacucurtcu7wrsepinjsmjh4dcbktk6y633ufd25z5ajm."_
+   - Clarify that Agent Beta started from score 60 and reached 100 by applying these verified lessons.
 
 ---
 
-## 4:40–5:00 — Conclusion & Trust Defense
+## 4:30–5:00 — Conclusion & Trust Defense
 
 **Presenter Script:**
 
@@ -133,6 +142,6 @@ The presenter must adhere to the non-negotiable honesty boundary: use only state
 If any live service (Gemini, Pinata, Base Sepolia RPC) fails or is unavailable during judging:
 
 1. **Gemini Offline:** Click "Run showcase replay". The deterministic replay executes completely client/server side with zero API keys. If "Run live Gemini" is clicked, point to the clean HTTP 503 error message as proof of honest validation.
-2. **Pinata Offline:** Click "Prepare Sanitized Memory Snapshot". The local sanitization and SHA-256 canonical hash pipeline will execute and display the local `PREPARED` state.
+2. **Pinata Gateway Offline:** The Historical Attested Showcase Evidence panel lists the public CID and canonical hash directly, and local SnapshotCore schema validation guarantees deterministic verification.
 3. **Base Sepolia RPC Offline:** Click "Check On-Chain Registry Memory". The dashboard will cleanly show `UNCONFIGURED` or `ERROR` without crashing or freezing.
 4. **No Simulated States:** At no point does the dashboard display fake green checks, fabricated hashes, or simulated wallet balances.
