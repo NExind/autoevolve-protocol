@@ -35,7 +35,8 @@ const LABELS: Record<
 };
 
 export function ProviderBadge({ provider }: ProviderBadgeProps) {
-  const { label, sublabel, cls } = LABELS[provider];
+  const current = (provider && LABELS[provider]) || LABELS.showcase;
+  const { label, sublabel, cls } = current;
 
   return (
     <span className={`providerBadge ${cls}`} aria-label={`Provider: ${label}`}>
